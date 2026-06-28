@@ -1,8 +1,9 @@
 import { NavBar } from '@/components/NavBar';
+import { NavBarI18n } from '@/components/NavBarI18n';
 
 const links = [
-  { href: '/teacher/dashboard', label: '🏠 Dashboard' },
-  { href: '/teacher/quiz/new',  label: '➕ Kuis Baru' },
+  { href: '/teacher/dashboard', labelKey: 'nav.dashboard' },
+  { href: '/teacher/quiz/new',  labelKey: 'nav.new_quiz' },
 ];
 
 export default function TeacherLayout({ children }: { children: React.ReactNode }) {

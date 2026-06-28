@@ -1,9 +1,9 @@
 import { NavBar } from '@/components/NavBar';
 
 const links = [
-  { href: '/student/dashboard', label: '🏠 Dashboard' },
-  { href: '/student/materials',  label: '📚 Materi' },
-  { href: '/student/health',     label: '💚 Riwayat Kesehatan' },
+  { href: '/student/dashboard', labelKey: 'nav.dashboard' },
+  { href: '/student/materials',  labelKey: 'nav.materials' },
+  { href: '/student/health',     labelKey: 'nav.health' },
 ];
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {

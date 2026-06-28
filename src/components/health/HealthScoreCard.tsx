@@ -1,92 +1,60 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { useRealtimeHealth } from '@/hooks/useRealtimeHealth';
+import { useEffect, useState } from 'react';
 import { Card, CardTitle } from '@/components/ui/Card';
+import { useT } from '@/i18n/useT';
 
-interface HealthRecordRow {
-  health_score: number;
-  eye_distance_score: number;
-  posture_score: number;
-  blink_score: number;
-  screen_time_score: number;
-  created_at: string;
-}
+interface HealthData { score: number | null; distance: number | null; posture: number | null; blink: number | null; screen_time_minutes: number | null }
 
-// Works for any caller — self, teacher, or parent — since RLS on
-// health_records (not this component) is what actually decides whether the
-// row comes back.
-//
-// BUG FIX: sebelumnya fetch HANYA sekali saat mount ([userId] sebagai satu-
-// satunya dependency). Akibatnya begitu siswa mengakhiri sesi belajar dan
-// health_records baris baru ter-insert, card ini tetap menampilkan skor sesi
-// SEBELUMNYA sampai halaman di-reload manual — tidak "realtime". Sekarang
-// pakai pola yang sama dengan StudentTable.tsx (dashboard guru): re-fetch
-// lewat useRealtimeHealth setiap ada INSERT baru di health_records.
-export function HealthScoreCard({ userId, label }: { userId: string; label?: string }) {
-  const [record, setRecord]   = useState<HealthRecordRow | null>(null);
+export function HealthScoreCard({ studentId }: { studentId?: string }) {
+  const { t } = useT();
+  const [data, setData]       = useState<HealthData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(() => {
-    const supabase = createClient();
-    supabase
-      .from('health_records')
-      .select('health_score, eye_distance_score, posture_score, blink_score, screen_time_score, created_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (error) console.error('[HealthScoreCard] fetch error:', error.message);
-        setRecord(data);
-        setLoading(false);
-      });
-  }, [userId]);
+  useEffect(() => {
+    const url = studentId ? `/api/health/score?studentId=${studentId}` : '/api/health/score';
+    fetch(url).then((r) => r.json()).then((d) => setData(d)).finally(() => setLoading(false));
+  }, [studentId]);
 
-  useEffect(() => { load(); }, [load]);
-  useRealtimeHealth(load);
-
-  if (loading) {
-    return (
-      <Card>
-        <CardTitle>{label ?? 'Health score'}</CardTitle>
-        <p className="text-sm text-ink/50">Memuat...</p>
-      </Card>
-    );
+  function scoreColor(v: number | null) {
+    if (v === null) return 'text-ink/30';
+    if (v >= 80)   return 'text-teal-600';
+    if (v >= 60)   return 'text-amber-600';
+    return 'text-red-500';
   }
 
-  if (!record) {
-    return (
-      <Card>
-        <CardTitle>{label ?? 'Health score'}</CardTitle>
-        <p className="text-sm text-ink/50">Belum ada sesi belajar tercatat.</p>
-      </Card>
-    );
-  }
-
-  const rows: Array<[string, number]> = [
-    ['Jarak mata', record.eye_distance_score],
-    ['Postur', record.posture_score],
-    ['Kedipan', record.blink_score],
-    ['Screen time', record.screen_time_score],
-  ];
+  function fmt(v: number | null) { return v !== null ? `${v}` : '—'; }
 
   return (
     <Card>
-      <CardTitle>{label ?? 'Health score'}</CardTitle>
-      <p className="text-4xl font-display font-bold text-teal-600 mb-3">{record.health_score}</p>
-      <div className="space-y-1.5">
-        {rows.map(([name, score]) => (
-          <div key={name} className="flex items-center gap-2 text-sm">
-            <span className="w-28 text-ink/70">{name}</span>
-            <div className="flex-1 h-2 rounded-full bg-cream overflow-hidden">
-              <div className="h-full bg-teal-400" style={{ width: `${score}%` }} />
-            </div>
-            <span className="w-8 text-right text-ink/60">{score}</span>
+      <CardTitle>{t('health', 'score_label')}</CardTitle>
+      {loading ? (
+        <p className="text-sm text-ink/40 mt-2">{t('health', 'loading')}</p>
+      ) : !data || data.score === null ? (
+        <p className="text-sm text-ink/40 mt-2">{t('health', 'no_sessions')}</p>
+      ) : (
+        <div className="mt-3 space-y-2">
+          <div className="flex items-end gap-2">
+            <span className={`text-5xl font-bold tabular-nums ${scoreColor(data.score)}`}>{fmt(data.score)}</span>
+            <span className="text-sm text-ink/30 mb-2">/ 100</span>
           </div>
-        ))}
-      </div>
+          <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+            <MetricRow label={t('health', 'row_distance')} value={fmt(data.distance)} scoreColor={scoreColor(data.distance)} />
+            <MetricRow label={t('health', 'row_posture')} value={fmt(data.posture)} scoreColor={scoreColor(data.posture)} />
+            <MetricRow label={t('health', 'row_blink')} value={fmt(data.blink)} scoreColor={scoreColor(data.blink)} />
+            <MetricRow label={t('health', 'row_screentime')} value={data.screen_time_minutes !== null ? `${data.screen_time_minutes} min` : '—'} scoreColor="text-ink/60" />
+          </div>
+        </div>
+      )}
     </Card>
+  );
+}
+
+function MetricRow({ label, value, scoreColor }: { label: string; value: string; scoreColor: string }) {
+  return (
+    <div className="rounded-xl2 bg-cream border border-teal-50 px-3 py-2">
+      <p className="text-ink/40">{label}</p>
+      <p className={`font-bold text-base mt-0.5 ${scoreColor}`}>{value}</p>
+    </div>
   );
 }

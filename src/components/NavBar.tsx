@@ -7,7 +7,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { useT } from '@/i18n/useT';
 
-type NavLink = { href: string; label: string };
+type NavLink = { href: string; label?: string; labelKey?: string };
 
 interface NavBarProps {
   title: string;
@@ -36,6 +36,14 @@ export function NavBar({ title, role, links }: NavBarProps) {
     parent:  '#6D5AE6',
   };
   const accent = role ? roleColor[role] : '#1B8A5A';
+
+  function resolveLabel(l: NavLink): string {
+    if (l.labelKey) {
+      const [sec, key] = l.labelKey.split('.');
+      return t(sec as any, key);
+    }
+    return l.label ?? '';
+  }
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
@@ -67,7 +75,7 @@ export function NavBar({ title, role, links }: NavBarProps) {
                         : 'text-gray-500 hover:text-[#0D2B1E] hover:bg-gray-50'
                     }`}
                   >
-                    {l.label}
+                    {resolveLabel(l)}
                   </Link>
                 );
               })}
@@ -104,7 +112,7 @@ export function NavBar({ title, role, links }: NavBarProps) {
                     active ? 'bg-[#E8F5EE] text-[#1B8A5A]' : 'text-gray-500 hover:bg-gray-50'
                   }`}
                 >
-                  {l.label}
+                  {resolveLabel(l)}
                 </Link>
               );
             })}

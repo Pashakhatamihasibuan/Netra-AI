@@ -1,65 +1,71 @@
 'use client';
 
-// src/components/student/StudentQuizList.tsx
-// Daftar kuis yang otomatis tersedia untuk kelas siswa ini (dari guru
-// manapun), tanpa perlu memasukkan kode. Untuk sesi kuis langsung
-// (Kahoot-style berbatas waktu bersama), siswa tetap bisa pakai kolom
-// "Ikut Kuis" dengan kode di dashboard.
-
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Card, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { useT } from '@/i18n/useT';
 
-interface StudentQuiz {
-  id: string;
-  title: string;
-  description: string | null;
-  subject: string | null;
-  class_level: string | null;
-  question_count: number;
-  status: 'in_progress' | 'submitted' | 'forfeited' | null;
-  score: number | null;
+interface ClassQuiz {
+  id: string; title: string; subject?: string | null;
+  question_count: number; user_submission?: { score: number | null; stopped_by_cv?: boolean } | null;
+  class_name?: string | null;
 }
 
-export function StudentQuizList() {
-  const router = useRouter();
-  const [quizzes, setQuizzes] = useState<StudentQuiz[]>([]);
+interface Props { onSelect: (quiz: ClassQuiz) => void }
+
+export function StudentQuizList({ onSelect }: Props) {
+  const { t } = useT();
+  const [quizzes, setQuizzes] = useState<ClassQuiz[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/student/quizzes')
+    fetch('/api/student/class-quizzes')
       .then((r) => r.json())
       .then((d) => setQuizzes(d.quizzes ?? []))
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return null;
+  if (loading) return <Card><p className="text-sm text-ink/40">{t('common', 'loading')}</p></Card>;
   if (quizzes.length === 0) return null;
 
   return (
     <Card>
-      <CardTitle>Kuis untuk Kelasmu</CardTitle>
-      <p className="text-sm text-ink/60 mb-3">Kuis ini otomatis tersedia, tidak perlu kode.</p>
+      <CardTitle>{t('quiz', 'quiz_for_class')}</CardTitle>
+      <p className="text-xs text-ink/40 mb-3">{t('quiz', 'quiz_auto_desc')}</p>
       <div className="space-y-2">
-        {quizzes.map((q) => (
-          <button
-            key={q.id}
-            onClick={() => router.push(`/student/quiz/${q.id}`)}
-            className="w-full text-left rounded-xl2 border border-teal-50 px-4 py-3 hover:bg-cream transition-colors flex items-center justify-between gap-3"
-          >
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-medium text-sm truncate">{q.title}</p>
-                {q.subject && <span className="text-[10px] bg-coral-50 text-coral-700 px-1.5 py-0.5 rounded font-bold shrink-0">{q.subject}</span>}
+        {quizzes.map((q) => {
+          const sub = q.user_submission;
+          const done = !!sub;
+          const stopped = sub?.stopped_by_cv;
+
+          return (
+            <button
+              key={q.id}
+              onClick={() => !done && onSelect(q)}
+              disabled={done}
+              className={`w-full text-left rounded-xl2 border px-4 py-3 transition-colors ${done ? 'border-teal-50 bg-teal-50/30 opacity-70 cursor-default' : 'border-teal-50 hover:bg-teal-50/40'}`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-medium text-sm">{q.title}</p>
+                    {q.subject && <span className="text-[10px] bg-coral-50 text-coral-700 px-1.5 py-0.5 rounded font-bold">{q.subject}</span>}
+                  </div>
+                  <p className="text-xs text-ink/40 mt-0.5">{t('quiz', 'quiz_questions').replace('{n}', String(q.question_count))}</p>
+                </div>
+                <div className="shrink-0">
+                  {done ? (
+                    stopped
+                      ? <Badge tone="alert">{t('quiz', 'quiz_stopped')}</Badge>
+                      : <Badge tone="safe">{t('quiz', 'quiz_score').replace('{score}', String(sub?.score ?? 0))}</Badge>
+                  ) : (
+                    <Badge tone="neutral">{t('quiz', 'quiz_not_done')}</Badge>
+                  )}
+                </div>
               </div>
-              <p className="text-xs text-ink/40 mt-0.5">{q.question_count} soal</p>
-            </div>
-            {q.status === 'submitted' && <Badge tone="safe">Nilai: {q.score}</Badge>}
-            {q.status === 'forfeited' && <Badge tone="alert">Dihentikan · 0</Badge>}
-            {!q.status && <Badge tone="neutral">Belum dikerjakan</Badge>}
-          </button>
-        ))}
+            </button>
+          );
+        })}
       </div>
     </Card>
   );
