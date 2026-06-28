@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { QuizMonitoringDetail } from '@/components/shared/QuizMonitoringDetail';
+import { QuizMonitoringDetail, type QuestionMonitorRow } from '@/components/shared/QuizMonitoringDetail';
 import { useT } from '@/i18n/useT';
 
 interface QuizSession {
@@ -15,9 +15,11 @@ interface QuizSession {
 
 export function ParentMonitoringView({ studentId }: { studentId: string }) {
   const { t } = useT();
-  const [sessions, setSessions] = useState<QuizSession[]>([]);
-  const [loading, setLoading]   = useState(true);
+  const [sessions, setSessions]     = useState<QuizSession[]>([]);
+  const [loading, setLoading]       = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [detailRows, setDetailRows] = useState<QuestionMonitorRow[]>([]);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -26,6 +28,20 @@ export function ParentMonitoringView({ studentId }: { studentId: string }) {
       .then((d) => setSessions(d.sessions ?? []))
       .finally(() => setLoading(false));
   }, [studentId]);
+
+  async function toggleDetail(submissionId: string) {
+    if (selectedId === submissionId) { setSelectedId(null); setDetailRows([]); return; }
+    setSelectedId(submissionId);
+    setDetailLoading(true);
+    setDetailRows([]);
+    try {
+      const res  = await fetch(`/api/parent/monitoring/detail?submissionId=${submissionId}&studentId=${studentId}`);
+      const data = await res.json();
+      setDetailRows(data.questions ?? []);
+    } finally {
+      setDetailLoading(false);
+    }
+  }
 
   return (
     <Card>
@@ -41,7 +57,7 @@ export function ParentMonitoringView({ studentId }: { studentId: string }) {
           {sessions.map((s) => (
             <div key={s.submission_id}>
               <button
-                onClick={() => setSelectedId((prev) => (prev === s.submission_id ? null : s.submission_id))}
+                onClick={() => toggleDetail(s.submission_id)}
                 className="w-full text-left rounded-xl2 border border-teal-50 px-4 py-3 hover:bg-teal-50/40 transition-colors"
               >
                 <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -70,7 +86,11 @@ export function ParentMonitoringView({ studentId }: { studentId: string }) {
               </button>
               {selectedId === s.submission_id && (
                 <div className="mt-1 border border-teal-50 rounded-xl2 overflow-hidden">
-                  <QuizMonitoringDetail submissionId={s.submission_id} />
+                  <QuizMonitoringDetail
+                    rows={detailRows}
+                    loading={detailLoading}
+                    onBack={() => { setSelectedId(null); setDetailRows([]); }}
+                  />
                 </div>
               )}
             </div>

@@ -7,11 +7,18 @@ import { Button } from '@/components/ui/Button';
 import { MonitoringPanel } from '@/components/monitoring/MonitoringPanel';
 import { DocumentViewer } from '@/components/shared/DocumentViewer';
 import { useT } from '@/i18n/useT';
-import type { MaterialWithAccess } from '@/types';
+import type { MaterialRow, MaterialMedia, MaterialAccess } from '@/types';
+
+// Shape returned by /api/student/materials
+interface StudentMaterial extends MaterialRow {
+  media: MaterialMedia[];
+  access: MaterialAccess | null;
+  joined_via_code: boolean;
+}
 
 export function MaterialList() {
   const { t } = useT();
-  const [materials, setMaterials] = useState<MaterialWithAccess[]>([]);
+  const [materials, setMaterials] = useState<StudentMaterial[]>([]);
   const [loading, setLoading]     = useState(true);
   const [joinCode, setJoinCode]   = useState('');
   const [joining, setJoining]     = useState(false);
@@ -53,8 +60,8 @@ export function MaterialList() {
     finally { setRequesting(null); }
   }
 
-  const joinedMaterials = materials.filter((m) => m.joined);
-  const classMaterials  = materials.filter((m) => !m.joined);
+  const joinedMaterials = materials.filter((m) => m.joined_via_code);
+  const classMaterials  = materials.filter((m) => !m.joined_via_code);
 
   return (
     <div className="space-y-6">
@@ -76,22 +83,24 @@ export function MaterialList() {
         </form>
       </Card>
 
-      {/* Joined materials */}
       {joinedMaterials.length > 0 && (
         <Card>
           <CardTitle>{t('materials', 'joined_section').replace('{n}', String(joinedMaterials.length))}</CardTitle>
           <div className="space-y-3 mt-3">
-            {joinedMaterials.map((m) => <MaterialCard key={m.id} m={m} openId={openId} setOpenId={setOpenId} requesting={requesting} handleRequest={handleRequest} t={t} />)}
+            {joinedMaterials.map((m) => (
+              <MaterialCard key={m.id} m={m} openId={openId} setOpenId={setOpenId} requesting={requesting} handleRequest={handleRequest} t={t} />
+            ))}
           </div>
         </Card>
       )}
 
-      {/* Class materials */}
       {classMaterials.length > 0 && (
         <Card>
           <CardTitle>{t('materials', 'class_section').replace('{n}', String(classMaterials.length))}</CardTitle>
           <div className="space-y-3 mt-3">
-            {classMaterials.map((m) => <MaterialCard key={m.id} m={m} openId={openId} setOpenId={setOpenId} requesting={requesting} handleRequest={handleRequest} t={t} />)}
+            {classMaterials.map((m) => (
+              <MaterialCard key={m.id} m={m} openId={openId} setOpenId={setOpenId} requesting={requesting} handleRequest={handleRequest} t={t} />
+            ))}
           </div>
         </Card>
       )}
@@ -110,7 +119,7 @@ export function MaterialList() {
 }
 
 function MaterialCard({ m, openId, setOpenId, requesting, handleRequest, t }: {
-  m: MaterialWithAccess;
+  m: StudentMaterial;
   openId: string | null;
   setOpenId: (id: string | null) => void;
   requesting: string | null;
@@ -118,8 +127,11 @@ function MaterialCard({ m, openId, setOpenId, requesting, handleRequest, t }: {
   t: (section: any, key: string) => string;
 }) {
   const isOpen    = openId === m.id;
-  const isLocked  = m.access_status === 'locked';
-  const isWaiting = m.access_status === 'requested';
+  const status    = m.access?.status ?? null;
+  const expiresAt = m.access?.expires_at ?? null;
+  const isPermanent = m.access?.duration_minutes === 0;
+  const isLocked  = status === 'locked';
+  const isWaiting = status === 'requested';
 
   return (
     <div className="rounded-xl2 border border-teal-50 px-4 py-3">
@@ -128,20 +140,19 @@ function MaterialCard({ m, openId, setOpenId, requesting, handleRequest, t }: {
           <div className="flex items-center gap-2 flex-wrap">
             <p className="font-medium text-sm">{m.title}</p>
             {m.subject && <span className="text-[10px] bg-coral-50 text-coral-700 px-1.5 py-0.5 rounded font-bold">{m.subject}</span>}
-            {m.joined && <Badge tone="safe">{t('materials', 'joined_badge')}</Badge>}
+            {m.joined_via_code && <Badge tone="safe">{t('materials', 'joined_badge')}</Badge>}
           </div>
           {m.description && <p className="text-xs text-ink/50 mt-0.5">{m.description}</p>}
           <p className="text-xs text-ink/30 mt-1">
-            {m.access_permanent
+            {isPermanent
               ? t('materials', 'access_perm')
-              : m.expires_at
-              ? `${t('materials', 'study_timer')}${t('materials', 'access_until').replace('{time}', new Date(m.expires_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }))}`
+              : expiresAt
+              ? `${t('materials', 'study_timer')}${t('materials', 'access_until').replace('{time}', new Date(expiresAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }))}`
               : ''}
           </p>
         </div>
       </div>
 
-      {/* Actions */}
       <div className="mt-3 flex gap-2 flex-wrap">
         {isLocked ? (
           isWaiting ? (
@@ -149,11 +160,7 @@ function MaterialCard({ m, openId, setOpenId, requesting, handleRequest, t }: {
               {t('materials', 'waiting_msg')}
             </p>
           ) : (
-            <Button
-              onClick={() => handleRequest(m.id)}
-              disabled={requesting === m.id}
-              variant="outline"
-            >
+            <Button onClick={() => handleRequest(m.id)} disabled={requesting === m.id} variant="secondary">
               {requesting === m.id ? t('materials', 'requesting') : t('materials', 'request_btn')}
             </Button>
           )
@@ -167,16 +174,14 @@ function MaterialCard({ m, openId, setOpenId, requesting, handleRequest, t }: {
         )}
       </div>
 
-      {/* Content */}
       {isOpen && !isLocked && (
         <div className="mt-4 border-t border-teal-50 pt-4 space-y-4">
           <MonitoringPanel materialId={m.id} quizMode={false} />
-
           {m.media && m.media.length > 0 && (
             <div className="space-y-3">
               {m.media.map((media, i) => (
                 <div key={i}>
-                  {media.media_type === 'image' && <img src={media.url} alt="" className="max-w-full rounded-xl2 border border-teal-50" />}
+                  {media.media_type === 'image' && <img src={media.url} alt="" loading="lazy" decoding="async" className="max-w-full rounded-xl2 border border-teal-50" />}
                   {media.media_type === 'video' && <video src={media.url} controls className="w-full rounded-xl2" />}
                   {(media.media_type === 'document' || media.media_type === 'presentation') && (
                     <DocumentViewer url={media.url} type={media.media_type} />
@@ -185,12 +190,9 @@ function MaterialCard({ m, openId, setOpenId, requesting, handleRequest, t }: {
               ))}
             </div>
           )}
-
-          {m.content ? (
-            <div className="prose prose-sm max-w-none text-ink/80 whitespace-pre-wrap">{m.content}</div>
-          ) : (
-            <p className="text-sm text-ink/40 italic">{t('materials', 'no_text')}</p>
-          )}
+          {m.content
+            ? <div className="prose prose-sm max-w-none text-ink/80 whitespace-pre-wrap">{m.content}</div>
+            : <p className="text-sm text-ink/40 italic">{t('materials', 'no_text')}</p>}
         </div>
       )}
 

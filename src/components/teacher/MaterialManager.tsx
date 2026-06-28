@@ -233,7 +233,7 @@ export function MaterialManager() {
                   {media.map((m, i) => (
                     <div key={m.id ?? i} className="relative rounded-xl2 border border-teal-50 overflow-hidden bg-cream aspect-video flex items-center justify-center">
                       {m.uploading ? <span className="text-xs text-ink/40">{t('materials', 'uploading')}</span>
-                        : m.media_type === 'image' ? <img src={m.url} alt="" className="w-full h-full object-cover" />
+                        : m.media_type === 'image' ? <img src={m.url} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         : m.media_type === 'video' ? <video src={m.url} className="w-full h-full object-cover" muted />
                         : <div className="flex flex-col items-center justify-center text-center px-2"><span className="text-2xl">{mediaIcon(m.media_type)}</span><span className="text-[10px] text-ink/50 truncate w-full">{m.fileName ?? (m.media_type === 'document' ? t('materials', 'doc_label') : t('materials', 'doc_ppt'))}</span></div>}
                       <button type="button" onClick={() => removeMedia(i)} className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 text-xs leading-none flex items-center justify-center">×</button>

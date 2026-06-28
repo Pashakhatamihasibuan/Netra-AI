@@ -6,14 +6,16 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useAppStore } from "@/store/useAppStore";
-import { HealthScoreCard } from "@/components/health/HealthScoreCard";
-import { ScreenTimeChart } from "@/components/dashboards/ScreenTimeChart";
-import { BadgeList } from "@/components/health/BadgeList";
-import { LinkChild } from "@/components/parent/LinkChild";
-import { ParentMonitoringView } from "@/components/parent/ParentMonitoringView";
-import { ClassOverview } from "@/components/parent/ClassOverview";
-import { ParentMaterialList } from "@/components/parent/ParentMaterialList";
-import { ChildQuizResults } from "@/components/parent/ChildQuizResults";
+import dynamic from "next/dynamic";
+
+const HealthScoreCard    = dynamic(() => import("@/components/health/HealthScoreCard").then(m => ({ default: m.HealthScoreCard })), { ssr: false });
+const ScreenTimeChart    = dynamic(() => import("@/components/dashboards/ScreenTimeChart").then(m => ({ default: m.ScreenTimeChart })), { ssr: false });
+const BadgeList          = dynamic(() => import("@/components/health/BadgeList").then(m => ({ default: m.BadgeList })), { ssr: false });
+const LinkChild          = dynamic(() => import("@/components/parent/LinkChild").then(m => ({ default: m.LinkChild })), { ssr: false });
+const ParentMonitoringView = dynamic(() => import("@/components/parent/ParentMonitoringView").then(m => ({ default: m.ParentMonitoringView })), { ssr: false });
+const ClassOverview      = dynamic(() => import("@/components/parent/ClassOverview").then(m => ({ default: m.ClassOverview })), { ssr: false });
+const ParentMaterialList = dynamic(() => import("@/components/parent/ParentMaterialList").then(m => ({ default: m.ParentMaterialList })), { ssr: false });
+const ChildQuizResults   = dynamic(() => import("@/components/parent/ChildQuizResults").then(m => ({ default: m.ChildQuizResults })), { ssr: false });
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useT } from "@/i18n/useT";
 

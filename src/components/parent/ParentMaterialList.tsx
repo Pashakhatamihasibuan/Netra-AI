@@ -74,7 +74,7 @@ export function ParentMaterialList({ studentId }: { studentId: string }) {
                       {m.media.map((md, i) => (
                         <div key={i}>
                           {md.media_type === 'image' && (
-                            <img src={md.url} alt="" className="max-w-full rounded-xl2 border border-teal-50" />
+                            <img src={md.url} alt="" loading="lazy" decoding="async" className="max-w-full rounded-xl2 border border-teal-50" />
                           )}
                           {md.media_type === 'video' && (
                             <video src={md.url} controls className="w-full rounded-xl2" />

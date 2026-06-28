@@ -105,9 +105,9 @@ export default function StudentDashboardPage() {
         {error && <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2 mt-2">{error}</p>}
       </Card>
 
-      <ParentPinCard pin={user.parent_pin} />
+      <ParentPinCard pin={user.parent_pin ?? ''} />
       <MonitoringPanel />
-      <StudentQuizList onSelect={(quiz) => router.push(`/student/quiz/${quiz.id}`)} />
+      <StudentQuizList onSelect={(q) => router.push(`/student/quiz/${q.id}`)} />
 
       {/* Materi */}
       <Card>
@@ -124,8 +124,8 @@ export default function StudentDashboardPage() {
 
       {/* Health & badges */}
       <div className="grid sm:grid-cols-2 gap-5">
-        <HealthScoreCard studentId={user.id} />
-        <BadgeList studentId={user.id} />
+        <HealthScoreCard />
+        <BadgeList />
       </div>
     </div>
   );

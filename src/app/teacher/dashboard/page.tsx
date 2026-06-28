@@ -8,10 +8,13 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import type { Quiz } from '@/types';
-import { MaterialManager } from '@/components/teacher/MaterialManager';
-import { MaterialRequests } from '@/components/teacher/MaterialRequests';
-import { TeacherProfile } from '@/components/teacher/TeacherProfile';
-import { MonitoringWarningBadge, MonitoringSummaryModal, useMonitoringSummary } from '@/components/teacher/MonitoringSummaryModal';
+import dynamic from 'next/dynamic';
+import { MonitoringWarningBadge, useMonitoringSummary } from '@/components/teacher/MonitoringSummaryModal';
+
+const MaterialManager     = dynamic(() => import('@/components/teacher/MaterialManager').then(m => ({ default: m.MaterialManager })), { ssr: false });
+const MaterialRequests    = dynamic(() => import('@/components/teacher/MaterialRequests').then(m => ({ default: m.MaterialRequests })), { ssr: false });
+const TeacherProfile      = dynamic(() => import('@/components/teacher/TeacherProfile').then(m => ({ default: m.TeacherProfile })), { ssr: false });
+const MonitoringSummaryModal = dynamic(() => import('@/components/teacher/MonitoringSummaryModal').then(m => ({ default: m.MonitoringSummaryModal })), { ssr: false });
 import { useT } from '@/i18n/useT';
 
 interface QuizResult {

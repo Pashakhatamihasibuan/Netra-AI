@@ -250,7 +250,7 @@ export function QuizPlayer({ quizId, quizTitle, secondsPerQuestion, randomizeOrd
             <span className="text-sm text-ink/60">{index + 1}/{questions.length}{secondsPerQuestion ? ` · ${secondsLeft}s` : ''}</span>
           </div>
         </div>
-        {current.image_url && <div className="mb-4"><img src={current.image_url} alt="" className="max-h-64 rounded-lg object-contain border border-teal-100" /></div>}
+        {current.image_url && <div className="mb-4"><img src={current.image_url} alt="" loading="lazy" decoding="async" className="max-h-64 rounded-lg object-contain border border-teal-100" /></div>}
         <p className="font-medium mb-4" style={{ fontSize }}><MathText text={current.question} /></p>
         <div className="space-y-2">
           {(['A', 'B', 'C', 'D'] as const).map((opt) => (

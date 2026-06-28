@@ -485,7 +485,7 @@ export function LoginPage() {
 
   if (!selected) {
     return (
-      <main className="min-h-screen bg-[#FAFAF8] flex items-center justify-center px-4 py-12">
+      <main id="main-content" className="min-h-screen bg-[#FAFAF8] flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="text-center mb-10">
             <svg width="48" height="48" viewBox="0 0 32 32" fill="none" className="mx-auto mb-4">
@@ -522,7 +522,7 @@ export function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FAFAF8] flex items-center justify-center px-4 py-12">
+    <main id="main-content" className="min-h-screen bg-[#FAFAF8] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
         <button onClick={() => setSelected(null)}
           className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 mb-6 transition-colors">

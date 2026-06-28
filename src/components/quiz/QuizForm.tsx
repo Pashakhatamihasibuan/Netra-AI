@@ -134,7 +134,7 @@ export function QuizForm({ initialQuiz, initialQuestions, isEdit }: QuizFormProp
                   <label className="text-sm font-medium text-ink/70 block mb-1">{t('quiz', 'image_label')}</label>
                   {q.image_url && (
                     <div className="mb-2 relative inline-block">
-                      <img src={q.image_url} alt="" className="h-32 rounded-lg object-cover border border-teal-100" />
+                      <img src={q.image_url} alt="" loading="lazy" decoding="async" className="h-32 rounded-lg object-cover border border-teal-100" />
                       <button type="button" onClick={() => updateQuestion(i, "image_url", null)} className="absolute top-1 right-1 bg-alertred-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow hover:bg-alertred-600">✕</button>
                     </div>
                   )}
