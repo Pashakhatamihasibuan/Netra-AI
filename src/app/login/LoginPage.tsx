@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { UserRole } from '@/types';
 import { useClassSections } from '@/hooks/useClassSections';
@@ -15,10 +15,21 @@ const roleRoutes: Record<UserRole, string> = {
   admin:   '/admin/dashboard',
 };
 
-async function fetchRoleFromDB(userId: string, supabase: ReturnType<typeof createClient>): Promise<UserRole | null> {
-  const { data } = await supabase.from('users').select('role').eq('id', userId).maybeSingle();
-  const role = data?.role as UserRole | undefined;
-  return (role && roleRoutes[role]) ? role : null;
+/** Verify user exists in DB AND has the expected role — security gate */
+async function verifyDBRole(
+  userId: string,
+  expectedRole: UserRole,
+  supabase: ReturnType<typeof createClient>
+): Promise<{ ok: boolean; actual?: UserRole }> {
+  const { data, error } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (error || !data) return { ok: false };
+  const actual = data.role as UserRole;
+  return { ok: actual === expectedRole, actual };
 }
 
 const inp = 'w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1B8A5A]/50 focus:border-[#1B8A5A] transition-colors placeholder:text-gray-400';
@@ -41,12 +52,9 @@ function OkBox({ msg }: { msg: string }) {
 
 function SubmitBtn({ loading, label, accent }: { loading: boolean; label: string; accent: string }) {
   return (
-    <button
-      type="submit"
-      disabled={loading}
+    <button type="submit" disabled={loading}
       className="w-full py-2.5 rounded-xl text-white font-semibold text-sm disabled:opacity-60 transition-all hover:opacity-90 active:scale-[0.98]"
-      style={{ backgroundColor: accent }}
-    >
+      style={{ backgroundColor: accent }}>
       {loading ? (
         <span className="flex items-center justify-center gap-2">
           <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
@@ -69,13 +77,9 @@ function TabToggle({ options, value, onChange, accent }: {
   return (
     <div className="flex rounded-xl bg-gray-100 p-1 gap-1">
       {options.map((o) => (
-        <button
-          key={o.id}
-          type="button"
-          onClick={() => onChange(o.id)}
+        <button key={o.id} type="button" onClick={() => onChange(o.id)}
           className="flex-1 py-2 text-xs font-semibold rounded-lg transition-all"
-          style={value === o.id ? { backgroundColor: accent, color: '#fff' } : { color: '#6B7280' }}
-        >
+          style={value === o.id ? { backgroundColor: accent, color: '#fff' } : { color: '#6B7280' }}>
           {o.label}
         </button>
       ))}
@@ -83,19 +87,64 @@ function TabToggle({ options, value, onChange, accent }: {
   );
 }
 
+// ── Password input with show/hide toggle ─────────────────────────────────────
+function PasswordInput({ value, onChange, placeholder, autoComplete, className }: {
+  value: string; onChange: (v: string) => void;
+  placeholder?: string; autoComplete?: string; className?: string;
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        type={show ? 'text' : 'password'}
+        className={`${inp} pr-10 ${className ?? ''}`}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required
+        minLength={6}
+        autoComplete={autoComplete}
+      />
+      <button
+        type="button"
+        onClick={() => setShow((s) => !s)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+        tabIndex={-1}
+        aria-label={show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+      >
+        {show ? (
+          // Eye-off icon
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+          </svg>
+        ) : (
+          // Eye icon
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+        )}
+      </button>
+    </div>
+  );
+}
+
+// ── Student form ──────────────────────────────────────────────────────────────
 function StudentForm() {
   const { t, lang } = useT();
-  const [mode, setMode]         = useState<'login' | 'register'>('login');
-  const [accessCode, setCode]   = useState('');
-  const [fullName, setName]     = useState('');
-  const [gradeLevel, setGrade]  = useState('3');
+  const [mode, setMode]       = useState<'login' | 'register'>('login');
+  const [accessCode, setCode] = useState('');
+  const [fullName, setName]   = useState('');
+  const [gradeLevel, setGrade] = useState('3');
   const [sectionId, setSectionId] = useState('');
-  const [error, setError]       = useState<string | null>(null);
-  const [info, setInfo]         = useState<string | null>(null);
-  const [loading, setLoading]   = useState(false);
+  const [error, setError]     = useState<string | null>(null);
+  const [info, setInfo]       = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const { sections, loading: secLoading } = useClassSections(mode === 'register' ? gradeLevel : null);
-  useEffect(() => { setSectionId(''); }, [gradeLevel]);
 
   const GRADE_OPTIONS = [
     { value: '1', label: t('dashboard', 'grade_1') },
@@ -109,11 +158,11 @@ function StudentForm() {
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault(); setError(null); setLoading(true);
     try {
-      const res = await fetch('/api/student/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ accessCode: accessCode.trim().toUpperCase() }) });
+      const res  = await fetch('/api/student/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ accessCode: accessCode.trim().toUpperCase() }) });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? t('login', 'error_generic'));
+      if (!res.ok) throw new Error(data.error ?? t('common', 'error'));
       window.location.href = '/student/dashboard';
-    } catch (e) { setError(e instanceof Error ? e.message : t('login', 'error_generic')); }
+    } catch (e) { setError(e instanceof Error ? e.message : t('common', 'error')); }
     finally { setLoading(false); }
   }
 
@@ -122,12 +171,12 @@ function StudentForm() {
     if (!sectionId) { setError(t('login', 'select_class_err')); return; }
     setLoading(true);
     try {
-      const res = await fetch('/api/student/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fullName: fullName.trim(), gradeLevel, classSectionId: sectionId }) });
+      const res  = await fetch('/api/student/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fullName: fullName.trim(), gradeLevel, classSectionId: sectionId }) });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? t('login', 'error_generic'));
+      if (!res.ok) throw new Error(data.error ?? t('common', 'error'));
       setInfo(`${lang === 'en' ? 'Access Code' : 'Kode Aksesmu'}: ${data.accessCode}\n${lang === 'en' ? 'Parent PIN' : 'PIN Orang Tua'}: ${data.parentPin}\n\n${lang === 'en' ? 'Save this code — you need it to log in.' : 'Simpan kode akses ini — kamu butuhkan untuk login.'}`);
       setMode('login'); setCode(data.accessCode);
-    } catch (e) { setError(e instanceof Error ? e.message : t('login', 'error_generic')); }
+    } catch (e) { setError(e instanceof Error ? e.message : t('common', 'error')); }
     finally { setLoading(false); }
   }
 
@@ -135,16 +184,15 @@ function StudentForm() {
     <div className="space-y-4">
       <TabToggle
         options={[{ id:'login', label: t('login', 'sign_in_label') }, { id:'register', label: t('login', 'register_label') }]}
-        value={mode}
-        onChange={(v) => { setMode(v as any); setError(null); setInfo(null); }}
-        accent="#1B8A5A"
+        value={mode} onChange={(v) => { setMode(v as any); setError(null); setInfo(null); }} accent="#1B8A5A"
       />
       {info && <OkBox msg={info} />}
       {mode === 'login' ? (
         <form onSubmit={handleLogin} className="space-y-3">
           <div>
             <label className={lbl}>{t('login', 'access_code')}</label>
-            <input className={`${inp} text-center tracking-[0.3em] uppercase font-mono text-base`} placeholder="XXXXXXXX" value={accessCode} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={8} required autoFocus />
+            <input className={`${inp} text-center tracking-[0.3em] uppercase font-mono text-base`}
+              placeholder="XXXXXXXX" value={accessCode} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={8} required autoFocus />
             <p className="text-[11px] text-gray-400 mt-1">{t('login', 'access_code_hint')}</p>
           </div>
           {error && <ErrBox msg={error} />}
@@ -158,21 +206,20 @@ function StudentForm() {
           </div>
           <div>
             <label className={lbl}>{t('login', 'grade_level')}</label>
-            <select className={inp} value={gradeLevel} onChange={(e) => setGrade(e.target.value)} required>
+            <select className={inp} value={gradeLevel} onChange={(e) => { setGrade(e.target.value); setSectionId(''); }} required>
               {GRADE_OPTIONS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
             </select>
           </div>
           <div>
             <label className={lbl}>{t('login', 'class_specific')}</label>
-            {secLoading ? <p className="text-xs text-gray-400 py-1">{t('login', 'class_loading')}</p>
+            {secLoading
+              ? <p className="text-xs text-gray-400 py-1">{t('login', 'class_loading')}</p>
               : sections.length === 0
               ? <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">{t('login', 'class_empty').replace('{grade}', gradeLevel)}</p>
-              : (
-                <select className={inp} value={sectionId} onChange={(e) => setSectionId(e.target.value)} required>
+              : <select className={inp} value={sectionId} onChange={(e) => setSectionId(e.target.value)} required>
                   <option value="">{t('login', 'choose_class')}</option>
                   {sections.map((s) => <option key={s.id} value={s.id}>{s.label ?? `${s.class_level} SD ${s.section}`}{s.homeroom_teacher_name ? ` — ${t('login', 'wali_hint')}${s.homeroom_teacher_name}` : ''}</option>)}
-                </select>
-              )}
+                </select>}
           </div>
           {error && <ErrBox msg={error} />}
           <SubmitBtn loading={loading} label={loading ? t('login', 'processing') + '…' : t('login', 'register_now')} accent="#1B8A5A" />
@@ -185,9 +232,10 @@ function StudentForm() {
 
 const GRADES = ['1', '2', '3', '4', '5', '6'];
 
+// ── Teacher form ──────────────────────────────────────────────────────────────
 function TeacherForm() {
   const { t } = useT();
-  const params = useSearchParams();
+  const params     = useSearchParams();
   const redirectTo = params.get('redirectTo');
   const [mode, setMode]         = useState<'signin' | 'signup'>('signin');
   const [name, setName]         = useState('');
@@ -205,12 +253,13 @@ function TeacherForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setError(null); setInfo(null); setLoading(true);
+
     if (mode === 'signup') {
       if (teacherType === 'subject' && (!subject.trim() || grades.length === 0)) {
         setError(t('login', 'subject_grade_err')); setLoading(false); return;
       }
       try {
-        const res = await fetch('/api/teacher/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, password, teacherType, subject: teacherType === 'subject' ? subject.trim() : undefined, gradeLevels: teacherType === 'subject' ? grades : undefined, homeroomGrade: teacherType === 'homeroom' ? homeroomGrade : undefined }) });
+        const res  = await fetch('/api/teacher/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, password, teacherType, subject: teacherType === 'subject' ? subject.trim() : undefined, gradeLevels: teacherType === 'subject' ? grades : undefined, homeroomGrade: teacherType === 'homeroom' ? homeroomGrade : undefined }) });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? t('common', 'error'));
         if (data.autoSignedIn) { window.location.href = redirectTo ?? roleRoutes.teacher; return; }
@@ -218,14 +267,25 @@ function TeacherForm() {
       } catch (e) { setError(e instanceof Error ? e.message : t('common', 'error')); }
       finally { setLoading(false); } return;
     }
+
+    // Sign-in: verify user exists in DB with role=teacher
     const supabase = createClient();
     try {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) throw new Error(t('login', 'error_wrong_pass'));
       if (!data.session) throw new Error(t('login', 'error_no_session'));
-      let dbRole = await fetchRoleFromDB(data.user.id, supabase);
-      if (!dbRole) { const m = data.user.user_metadata?.role as UserRole | undefined; dbRole = (m && roleRoutes[m]) ? m : 'teacher'; }
-      window.location.href = redirectTo ?? roleRoutes[dbRole];
+
+      const { ok, actual } = await verifyDBRole(data.user.id, 'teacher', supabase);
+      if (!ok) {
+        // Sign them out — wrong role or not in DB
+        await supabase.auth.signOut();
+        if (actual && roleRoutes[actual]) {
+          throw new Error(`Akun ini terdaftar sebagai ${actual === 'admin' ? 'Kepala Sekolah' : actual === 'parent' ? 'Orang Tua' : actual}. Silakan pilih tab yang sesuai.`);
+        }
+        throw new Error('Akun tidak ditemukan di sistem. Silakan daftar terlebih dahulu.');
+      }
+
+      window.location.href = redirectTo ?? roleRoutes.teacher;
     } catch (e) { setError(e instanceof Error ? e.message : t('common', 'error')); setLoading(false); }
   }
 
@@ -233,28 +293,29 @@ function TeacherForm() {
     <div className="space-y-4">
       <TabToggle
         options={[{ id:'signin', label: t('login', 'sign_in_label') }, { id:'signup', label: t('login', 'register_label') }]}
-        value={mode}
-        onChange={(v) => { setMode(v as any); setError(null); setInfo(null); }}
-        accent="#1B8A5A"
+        value={mode} onChange={(v) => { setMode(v as any); setError(null); setInfo(null); }} accent="#1B8A5A"
       />
       <form onSubmit={handleSubmit} className="space-y-3">
-        {mode === 'signup' && <div><label className={lbl}>{t('login', 'full_name')}</label><input className={inp} placeholder={t('login', 'name_sk')} value={name} onChange={(e) => setName(e.target.value)} required /></div>}
-        <div><label className={lbl}>{t('login', 'email')}</label><input type="email" className={inp} placeholder={t('login', 'email_teacher_ph')} value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" /></div>
-        <div><label className={lbl}>{t('login', 'password')}</label><input type="password" className={inp} placeholder={t('login', 'password_ph')} value={password} onChange={(e) => setPass(e.target.value)} required minLength={6} autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} /></div>
+        {mode === 'signup' && (
+          <div><label className={lbl}>{t('login', 'full_name')}</label>
+            <input className={inp} placeholder={t('login', 'name_sk')} value={name} onChange={(e) => setName(e.target.value)} required /></div>
+        )}
+        <div><label className={lbl}>{t('login', 'email')}</label>
+          <input type="email" className={inp} placeholder={t('login', 'email_teacher_ph')} value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" /></div>
+        <div>
+          <label className={lbl}>{t('login', 'password')}</label>
+          <PasswordInput value={password} onChange={setPass} placeholder={t('login', 'password_ph')} autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} />
+        </div>
         {mode === 'signup' && (
           <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 space-y-3">
             <div>
               <label className={lbl}>{t('login', 'teacher_type')}</label>
-              <TabToggle
-                options={[{ id:'subject', label: t('login', 'subject_teacher') }, { id:'homeroom', label: t('login', 'homeroom_teacher') }]}
-                value={teacherType}
-                onChange={(v) => setType(v as any)}
-                accent="#1B8A5A"
-              />
+              <TabToggle options={[{ id:'subject', label: t('login', 'subject_teacher') }, { id:'homeroom', label: t('login', 'homeroom_teacher') }]} value={teacherType} onChange={(v) => setType(v as any)} accent="#1B8A5A" />
             </div>
             {teacherType === 'subject' ? (
               <>
-                <div><label className={lbl}>{t('login', 'subject')}</label><input className={inp} placeholder={t('login', 'subject_ph')} value={subject} onChange={(e) => setSubject(e.target.value)} required={teacherType === 'subject'} /></div>
+                <div><label className={lbl}>{t('login', 'subject')}</label>
+                  <input className={inp} placeholder={t('login', 'subject_ph')} value={subject} onChange={(e) => setSubject(e.target.value)} required={teacherType === 'subject'} /></div>
                 <div>
                   <label className={lbl}>{t('login', 'classes_taught')}</label>
                   <div className="flex gap-2 flex-wrap">
@@ -281,12 +342,15 @@ function TeacherForm() {
         )}
         {info && <OkBox msg={info} />}
         {error && <ErrBox msg={error} />}
-        <SubmitBtn loading={loading} label={loading ? t('login', 'processing') + '…' : mode === 'signin' ? t('login', 'login_as_teacher') : t('login', 'register_as_teacher')} accent="#1B8A5A" />
+        <SubmitBtn loading={loading}
+          label={loading ? t('login', 'processing') + '…' : mode === 'signin' ? t('login', 'login_as_teacher') : t('login', 'register_as_teacher')}
+          accent="#1B8A5A" />
       </form>
     </div>
   );
 }
 
+// ── Parent form ───────────────────────────────────────────────────────────────
 function ParentForm() {
   const { t } = useT();
   const [childName, setChild] = useState('');
@@ -297,7 +361,7 @@ function ParentForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setError(null); setLoading(true);
     try {
-      const res = await fetch('/api/parent/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ childName: childName.trim(), pin: pin.trim() }) });
+      const res  = await fetch('/api/parent/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ childName: childName.trim(), pin: pin.trim() }) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? t('common', 'error'));
       window.location.href = '/parent/dashboard';
@@ -306,10 +370,13 @@ function ParentForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div><label className={lbl}>{t('login', 'child_name')}</label><input className={inp} placeholder={t('login', 'child_name_ph')} value={childName} onChange={(e) => setChild(e.target.value)} required /></div>
+      <div><label className={lbl}>{t('login', 'child_name')}</label>
+        <input className={inp} placeholder={t('login', 'child_name_ph')} value={childName} onChange={(e) => setChild(e.target.value)} required /></div>
       <div>
         <label className={lbl}>{t('login', 'parent_pin_6')}</label>
-        <input className={`${inp} text-center tracking-[0.4em] font-mono text-base`} placeholder="••••••" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))} maxLength={6} required />
+        <input className={`${inp} text-center tracking-[0.4em] font-mono text-base`}
+          placeholder="••••••" inputMode="numeric" value={pin}
+          onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))} maxLength={6} required />
         <p className="text-[11px] text-gray-400 mt-1">{t('login', 'parent_pin_hint2')}</p>
       </div>
       {error && <ErrBox msg={error} />}
@@ -318,34 +385,48 @@ function ParentForm() {
   );
 }
 
+// ── Admin form ────────────────────────────────────────────────────────────────
 function AdminForm() {
   const { t } = useT();
-  const params = useSearchParams();
+  const params     = useSearchParams();
   const redirectTo = params.get('redirectTo');
-  const [mode, setMode]     = useState<'signin' | 'signup'>('signin');
-  const [name, setName]     = useState('');
-  const [email, setEmail]   = useState('');
-  const [password, setPass] = useState('');
-  const [code, setCode]     = useState('');
-  const [error, setError]   = useState<string | null>(null);
+  const [mode, setMode]       = useState<'signin' | 'signup'>('signin');
+  const [name, setName]       = useState('');
+  const [email, setEmail]     = useState('');
+  const [password, setPass]   = useState('');
+  const [code, setCode]       = useState('');
+  const [error, setError]     = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setError(null); setLoading(true);
+
     if (mode === 'signup') {
       try {
-        const res = await fetch('/api/admin/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, password, adminCode: code }) });
+        const res  = await fetch('/api/admin/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, password, adminCode: code }) });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? t('common', 'error'));
         if (data.autoSignedIn) { window.location.href = redirectTo ?? roleRoutes.admin; return; }
         setMode('signin'); setLoading(false);
       } catch (e) { setError(e instanceof Error ? e.message : t('common', 'error')); setLoading(false); } return;
     }
+
+    // Sign-in: verify user exists in DB with role=admin
     const supabase = createClient();
     try {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) throw new Error(t('login', 'error_wrong_pass'));
       if (!data.session) throw new Error(t('login', 'error_no_session'));
+
+      const { ok, actual } = await verifyDBRole(data.user.id, 'admin', supabase);
+      if (!ok) {
+        await supabase.auth.signOut();
+        if (actual && roleRoutes[actual]) {
+          throw new Error(`Akun ini terdaftar sebagai ${actual === 'teacher' ? 'Guru' : actual === 'parent' ? 'Orang Tua' : actual}. Silakan pilih tab yang sesuai.`);
+        }
+        throw new Error('Akun tidak ditemukan di sistem. Silakan daftar terlebih dahulu.');
+      }
+
       window.location.href = redirectTo ?? roleRoutes.admin;
     } catch (e) { setError(e instanceof Error ? e.message : t('common', 'error')); setLoading(false); }
   }
@@ -354,14 +435,19 @@ function AdminForm() {
     <div className="space-y-4">
       <TabToggle
         options={[{ id:'signin', label: t('login', 'sign_in_label') }, { id:'signup', label: t('login', 'first_time') }]}
-        value={mode}
-        onChange={(v) => { setMode(v as any); setError(null); }}
-        accent="#C47B10"
+        value={mode} onChange={(v) => { setMode(v as any); setError(null); }} accent="#C47B10"
       />
       <form onSubmit={handleSubmit} className="space-y-3">
-        {mode === 'signup' && <div><label className={lbl}>{t('login', 'full_name')}</label><input className={inp} placeholder={t('login', 'name_principal_ph')} value={name} onChange={(e) => setName(e.target.value)} required /></div>}
-        <div><label className={lbl}>{t('login', 'email')}</label><input type="email" className={inp} placeholder={t('login', 'email_admin_ph')} value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" /></div>
-        <div><label className={lbl}>{t('login', 'password')}</label><input type="password" className={inp} placeholder={t('login', 'password_ph')} value={password} onChange={(e) => setPass(e.target.value)} required minLength={6} autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} /></div>
+        {mode === 'signup' && (
+          <div><label className={lbl}>{t('login', 'full_name')}</label>
+            <input className={inp} placeholder={t('login', 'name_principal_ph')} value={name} onChange={(e) => setName(e.target.value)} required /></div>
+        )}
+        <div><label className={lbl}>{t('login', 'email')}</label>
+          <input type="email" className={inp} placeholder={t('login', 'email_admin_ph')} value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" /></div>
+        <div>
+          <label className={lbl}>{t('login', 'password')}</label>
+          <PasswordInput value={password} onChange={setPass} placeholder={t('login', 'password_ph')} autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} />
+        </div>
         {mode === 'signup' && (
           <div>
             <label className={lbl}>{t('login', 'admin_code_label')}</label>
@@ -370,12 +456,15 @@ function AdminForm() {
           </div>
         )}
         {error && <ErrBox msg={error} />}
-        <SubmitBtn loading={loading} label={loading ? t('login', 'processing') + '…' : mode === 'signin' ? t('login', 'login_as_admin') : t('login', 'register_as_admin')} accent="#C47B10" />
+        <SubmitBtn loading={loading}
+          label={loading ? t('login', 'processing') + '…' : mode === 'signin' ? t('login', 'login_as_admin') : t('login', 'register_as_admin')}
+          accent="#C47B10" />
       </form>
     </div>
   );
 }
 
+// ── Root LoginPage ────────────────────────────────────────────────────────────
 type Tab = 'student' | 'teacher' | 'parent' | 'admin';
 
 export function LoginPage() {
@@ -392,7 +481,6 @@ export function LoginPage() {
     { id: 'parent'  as const, emoji: '👨‍👩‍👧', titleKey: 'parent',  descKey: 'parent_short_desc',  color: '#6D5AE6', bg: '#EEF0FD' },
     { id: 'admin'   as const, emoji: '🏫',  titleKey: 'admin',   descKey: 'admin_short_desc',   color: '#C47B10', bg: '#FDF3E0' },
   ];
-
   const roleConfig = roles.find((r) => r.id === selected);
 
   if (!selected) {
@@ -400,11 +488,11 @@ export function LoginPage() {
       <main className="min-h-screen bg-[#FAFAF8] flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="text-center mb-10">
-            <svg width="48" height="48" viewBox="0 0 32 32" fill="none" className="mx-auto mb-4" aria-hidden="true">
-              <ellipse cx="16" cy="16" rx="15" ry="10" stroke="#1B8A5A" strokeWidth="1.5" />
-              <circle cx="16" cy="16" r="6" fill="#1B8A5A" />
-              <circle cx="16" cy="16" r="3" fill="#0D2B1E" />
-              <circle cx="18" cy="14" r="1.2" fill="white" opacity="0.7" />
+            <svg width="48" height="48" viewBox="0 0 32 32" fill="none" className="mx-auto mb-4">
+              <ellipse cx="16" cy="16" rx="15" ry="10" stroke="#1B8A5A" strokeWidth="1.5"/>
+              <circle cx="16" cy="16" r="6" fill="#1B8A5A"/>
+              <circle cx="16" cy="16" r="3" fill="#0D2B1E"/>
+              <circle cx="18" cy="14" r="1.2" fill="white" opacity="0.7"/>
             </svg>
             <h1 className="font-display font-bold text-2xl text-[#0D2B1E]">Netra AI</h1>
             <p className="text-gray-500 text-sm mt-1">{t('login', 'platform_desc')}</p>
@@ -439,7 +527,7 @@ export function LoginPage() {
         <button onClick={() => setSelected(null)}
           className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 mb-6 transition-colors">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/>
           </svg>
           {t('login', 'back')}
         </button>
