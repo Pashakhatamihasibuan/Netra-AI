@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Card, CardTitle } from '@/components/ui/Card';
 import { useAppStore } from '@/store/useAppStore';
+import { useT } from '@/i18n/useT';
 
 interface DraftQuestion {
   question: string;
@@ -25,6 +26,7 @@ const emptyQuestion: DraftQuestion = {
 };
 
 export function QuizBuilder() {
+  const { t } = useT();
   const user = useAppStore((s) => s.user);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -66,7 +68,7 @@ export function QuizBuilder() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Gagal menyimpan.');
+      if (!res.ok) throw new Error(data.error ?? t('quiz', 'save_err'));
       setSavedQuizId(data.quizId);
     } catch (err: any) {
       console.error('QuizBuilder save error:', err);

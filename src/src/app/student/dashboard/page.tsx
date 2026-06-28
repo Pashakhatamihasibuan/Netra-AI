@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { ParentPinCard } from '@/components/student/ParentPinCard';
 import { StudentQuizList } from '@/components/student/StudentQuizList';
 import { useAppStore } from '@/store/useAppStore';
+import { useT } from '@/i18n/useT';
 
 const GRADE_LABELS: Record<string, string> = {
   '3': 'Kelas 3 SD', '4': 'Kelas 4 SD', '5': 'Kelas 5 SD', '6': 'Kelas 6 SD',
@@ -23,6 +24,7 @@ export default function StudentDashboardPage() {
   const [joining, setJoining]     = useState(false);
   const [error, setError]         = useState<string | null>(null);
   const [homeroomLabel, setHomeroom] = useState<string | null>(null);
+  const { t } = useT();
 
   useEffect(() => {
     if (!user) return;
@@ -41,10 +43,10 @@ export default function StudentDashboardPage() {
     try {
       const res  = await fetch('/api/quiz/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quizCode: quizCode.trim().toUpperCase() }) });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Kode tidak valid.');
+      if (!res.ok) throw new Error(data.error ?? t('dashboard', 'invalid_code'));
       router.push(`/student/quiz/${data.quizId}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan.');
+      setError(err instanceof Error ? err.message : t('dashboard', 'error_generic'));
       setJoining(false);
     }
   }

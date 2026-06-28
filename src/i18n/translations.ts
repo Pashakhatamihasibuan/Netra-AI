@@ -232,6 +232,8 @@ export const translations = {
     col_score:     { id: 'Nilai',              en: 'Score' },
     col_monitoring: { id: 'Monitoring CV',     en: 'CV Monitoring' },
     col_time:      { id: 'Waktu',              en: 'Time' },
+    delete_quiz_err: { id: 'Gagal menghapus kuis: ', en: 'Failed to delete quiz: ' },
+    error_generic: { id: 'Terjadi kesalahan.', en: 'An error occurred.' },
 
     // ── Admin dashboard ────────────────────────────────────────────────────
     admin_title:   { id: 'Kepala Sekolah',    en: 'Principal' },
@@ -302,6 +304,9 @@ export const translations = {
     cancel:       { id: 'Batal',               en: 'Cancel' },
     save:         { id: 'Simpan Kuis',         en: 'Save Quiz' },
     saving:       { id: 'Menyimpan...',        en: 'Saving...' },
+    save_err:     { id: 'Gagal menyimpan.',    en: 'Failed to save.' },
+    img_size_err: { id: 'Ukuran gambar maksimal 2MB.', en: 'Maximum image size is 2MB.' },
+    upload_img_err: { id: 'Gagal mengunggah gambar: ', en: 'Failed to upload image: ' },
     // Quiz player
     player_loading:   { id: 'Memuat soal...',     en: 'Loading questions...' },
     player_result:    { id: 'Hasil: {title}',     en: 'Result: {title}' },
@@ -393,6 +398,9 @@ export const translations = {
     open_access_prompt: { id: 'Durasi akses untuk siswa ini (menit), mis. 120 untuk 2 jam:', en: 'Access duration for this student (minutes), e.g. 120 for 2 hours:' },
     open_access_err:  { id: 'Durasi tidak valid.',         en: 'Invalid duration.' },
     open_access_fail: { id: 'Gagal membuka akses.',        en: 'Failed to open access.' },
+    unsupported_file: { id: '{file}: tipe file tidak didukung. Gunakan gambar, video, PDF, atau PPT/PPTX.', en: '{file}: unsupported file type. Use image, video, PDF, or PPT/PPTX.' },
+    max_size:         { id: '{file}: ukuran maksimal {size}MB.', en: '{file}: maximum size is {size}MB.' },
+    upload_err:       { id: 'Gagal unggah {file}: {err}',  en: 'Failed to upload {file}: {err}' },
 
     // Student access table
     loading_students: { id: 'Memuat status siswa...',      en: 'Loading student status...' },

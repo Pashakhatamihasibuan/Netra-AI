@@ -12,6 +12,7 @@ import { MaterialManager } from '@/components/teacher/MaterialManager';
 import { MaterialRequests } from '@/components/teacher/MaterialRequests';
 import { TeacherProfile } from '@/components/teacher/TeacherProfile';
 import { MonitoringWarningBadge, MonitoringSummaryModal, useMonitoringSummary } from '@/components/teacher/MonitoringSummaryModal';
+import { useT } from '@/i18n/useT';
 
 interface QuizResult {
   id: string;
@@ -27,6 +28,7 @@ interface QuizResult {
 
 function QuizTab() {
   const router = useRouter();
+  const { t } = useT();
   const [quizzes, setQuizzes] = useState<(Quiz & { quiz_code?: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [generatingCode, setGeneratingCode] = useState<string | null>(null);
@@ -89,7 +91,7 @@ function QuizTab() {
       setQuizzes((prev) => prev.filter((q) => q.id !== quizId));
     } else {
       const d = await res.json().catch(() => ({}));
-      alert('Gagal menghapus kuis: ' + (d.error ?? 'Terjadi kesalahan.'));
+      alert(t('dashboard', 'delete_quiz_err') + (d.error ?? t('dashboard', 'error_generic')));
     }
   }
 
@@ -371,6 +373,8 @@ const tabs: { id: Tab; label: string; icon: string }[] = [
 ];
 
 export default function TeacherDashboardPage() {
+  const router = useRouter();
+  const { t } = useT();
   const [activeTab, setActive] = useState<Tab>('quizzes');
 
   return (

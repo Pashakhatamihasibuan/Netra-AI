@@ -10,8 +10,10 @@ import { Card, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useRealtimeMaterialAccess } from '@/hooks/useRealtimeMaterialAccess';
 import type { MaterialAccessRequest } from '@/types';
+import { useT } from '@/i18n/useT';
 
 export function MaterialRequests() {
+  const { t } = useT();
   const [requests, setRequests] = useState<MaterialAccessRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -49,7 +51,7 @@ export function MaterialRequests() {
       if (res.ok) {
         setRequests((prev) => prev.filter((r) => r.access_id !== req.access_id));
       } else {
-        alert('Gagal memproses permintaan.');
+        alert(t('materials', 'respond_err'));
       }
     } finally {
       setBusyId(null);

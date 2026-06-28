@@ -12,6 +12,7 @@ import {
   MathEquationInsert,
   MathText,
 } from "@/components/shared/EquationEditor";
+import { useT } from '@/i18n/useT';
 
 interface QuizFormProps {
   initialQuiz?: Quiz;
@@ -24,6 +25,7 @@ export function QuizForm({
   initialQuestions,
   isEdit,
 }: QuizFormProps) {
+  const { t } = useT();
   const router = useRouter();
   const user = useAppStore((s) => s.user);
   const { sections: classSections, loading: sectionsLoading } =
@@ -76,7 +78,7 @@ export function QuizForm({
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      alert("Ukuran gambar maksimal 2MB.");
+      alert(t('quiz', 'img_size_err'));
       return;
     }
 
@@ -98,7 +100,7 @@ export function QuizForm({
 
       updateQuestion(index, "image_url", publicUrl);
     } catch (err: any) {
-      alert("Gagal mengunggah gambar: " + err.message);
+      alert(t('quiz', 'upload_img_err') + err.message);
     }
   }
 

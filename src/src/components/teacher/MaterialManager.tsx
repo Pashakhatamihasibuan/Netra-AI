@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/Badge';
 import { useAppStore } from '@/store/useAppStore';
 import type { MaterialWithStats, MaterialMedia, MediaType } from '@/types';
 import { useClassSections } from '@/hooks/useClassSections';
+import { useT } from '@/i18n/useT';
 
 interface DraftMedia extends Partial<MaterialMedia> {
   media_type: MediaType;
@@ -79,6 +80,7 @@ function maxSizeFor(type: MediaType): number {
 }
 
 export function MaterialManager() {
+  const { t } = useT();
   const user = useAppStore((s) => s.user);
   const { sections: classSections, loading: sectionsLoading } = useClassSections();
   const gradeOptions = Array.from(
@@ -147,18 +149,19 @@ export function MaterialManager() {
     for (const file of Array.from(files)) {
       const kind = mediaKindFromFile(file);
       if (!kind) {
-        alert(`${file.name}: tipe file tidak didukung. Gunakan gambar, video, PDF, atau PPT/PPTX.`);
-        continue;
+        alert(t('materials', 'unsupported_file', { file: file.name }));
+        return;
       }
 
       const maxSize = maxSizeFor(kind);
       if (file.size > maxSize) {
-        alert(`${file.name}: ukuran maksimal ${Math.round(maxSize / 1024 / 1024)}MB.`);
-        continue;
+        alert(t('materials', 'max_size', { file: file.name, size: String(Math.round(maxSize / 1024 / 1024)) }));
+        return;
       }
 
       const tempId = `uploading-${Date.now()}-${Math.random()}`;
-      setMedia((prev) => [...prev, { media_type: kind, url: '', fileName: file.name, uploading: true, id: tempId } as DraftMedia]);
+      const dm = { media_type: kind, url: '', fileName: file.name, uploading: true, id: tempId } as DraftMedia;
+      setMedia((prev) => [...prev, dm]);
 
       try {
         const supabase = createClient();
@@ -175,8 +178,9 @@ export function MaterialManager() {
           m.id === tempId ? { media_type: kind, url: publicUrl, fileName: file.name, uploading: false } : m
         ));
       } catch (err: any) {
-        alert(`Gagal unggah ${file.name}: ${err.message}`);
-        setMedia((prev) => prev.filter((m) => m.id !== tempId));
+        console.error('Upload failed:', err);
+        alert(t('materials', 'upload_err', { file: file.name, err: err.message }));
+        setMedia((prev) => prev.filter((m) => m !== dm));
       }
     }
 
@@ -235,16 +239,20 @@ export function MaterialManager() {
     const res = await fetch(`/api/teacher/materials/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setMaterials((prev) => prev.filter((m) => m.id !== id));
-      if (expandedId === id) setExpandedId(null);
+      setMaterials((prev) => prev.filter((m) => m.id !== id));
     } else {
       const data = await res.json().catch(() => ({}));
-      alert('Gagal menghapus: ' + (data.error ?? 'Terjadi kesalahan.'));
+      alert(t('materials', 'delete_err') + (data.error ?? t('dashboard', 'error_generic')));
     }
   }
 
   async function toggleExpand(id: string) {
     if (expandedId === id) { setExpandedId(null); return; }
     setExpandedId(id);
+    loadAccess(id);
+  }
+
+  async function loadAccess(id: string) {
     setAccessLoading(true);
     setAccessRows([]);
     try {
@@ -256,7 +264,6 @@ export function MaterialManager() {
       const joinsData = joinsRes.ok ? await joinsRes.json() : { joined: [], not_joined: [] };
 
       // Merge: siswa yang sudah join + siswa yang belum join
-      const joinedIds = new Set((joinsData.joined ?? []).map((s: any) => s.student_id));
       const accessMap = new Map((accessData.students ?? []).map((a: any) => [a.student_id, a]));
 
       const allRows: StudentAccessRow[] = [
@@ -284,10 +291,10 @@ export function MaterialManager() {
   }
 
   async function manualOpen(materialId: string, studentId: string) {
-    const input = prompt('Durasi akses untuk siswa ini (menit), mis. 120 untuk 2 jam:', '120');
-    if (!input) return;
-    const duration = Number(input);
-    if (!duration || duration <= 0) { alert('Durasi tidak valid.'); return; }
+    const raw = prompt(t('materials', 'open_access_prompt'), '120');
+    if (!raw) return;
+    const duration = parseInt(raw, 10);
+    if (!duration || duration <= 0) { alert(t('materials', 'open_access_err')); return; }
 
     const res = await fetch(`/api/teacher/materials/${materialId}/access`, {
       method: 'POST',
@@ -297,9 +304,9 @@ export function MaterialManager() {
     if (res.ok) {
       toggleExpand(materialId);
       toggleExpand(materialId);
-      loadMaterials();
+      loadAccess(materialId);
     } else {
-      alert('Gagal membuka akses.');
+      alert(t('materials', 'open_access_fail'));
     }
   }
 

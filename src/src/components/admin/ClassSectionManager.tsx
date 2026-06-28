@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Card, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { useT } from '@/i18n/useT';
 
 interface ClassSection {
   id: string;
@@ -20,6 +21,7 @@ interface TeacherOption { id: string; name: string; teacher_type: string | null;
 const GRADE_OPTIONS = ['3', '4', '5', '6'];
 
 export function ClassSectionManager() {
+  const { t } = useT();
   const [sections, setSections] = useState<ClassSection[]>([]);
   const [teachers, setTeachers] = useState<TeacherOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -156,7 +158,7 @@ export function ClassSectionManager() {
       await load();
     } else {
       const data = await res.json().catch(() => ({}));
-      alert(`Gagal menugaskan wali kelas: ${data.error ?? 'Unknown error'}`);
+      alert(t('admin', 'assign_err') + (data.error ?? t('dashboard', 'error_generic')));
       // Rollback optimistic update
       await load();
     }
@@ -181,7 +183,7 @@ export function ClassSectionManager() {
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      alert(`Gagal melepas wali kelas: ${data.error ?? `HTTP ${res.status}`}`);
+      alert(t('admin', 'remove_err') + (data.error ?? `HTTP ${res.status}`));
     }
   }
 
@@ -192,7 +194,7 @@ export function ClassSectionManager() {
       setSections((prev) => prev.filter((s) => s.id !== sectionId));
     } else {
       const data = await res.json().catch(() => ({}));
-      alert(`Gagal menghapus kelas: ${data.error ?? `HTTP ${res.status}`}`);
+      alert(t('admin', 'delete_err') + (data.error ?? `HTTP ${res.status}`));
     }
   }
 
