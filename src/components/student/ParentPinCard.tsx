@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { Card, CardTitle } from '@/components/ui/Card';
 import { useT } from '@/i18n/useT';
 
-export function ParentPinCard({ pin }: { pin: string }) {
+export function ParentPinCard({ pin }: { pin: string | null | undefined }) {
+  if (!pin) return null;
   const { t } = useT();
   const [visible, setVisible] = useState(false);
   const [copied, setCopied]   = useState(false);
