@@ -176,8 +176,8 @@ export default function ParentDashboardPage() {
               <BadgeList studentId={activeChild.id} />
             </div>
           )}
-          {activeChild && section === "monitoring" && <ParentMonitoringView childId={activeChild.id} />}
-          {activeChild && section === "nilai"      && <ChildQuizResults childId={activeChild.id} />}
+          {activeChild && section === "monitoring" && <ParentMonitoringView studentId={activeChild.id} />}
+          {activeChild && section === "nilai"      && <ChildQuizResults studentId={activeChild.id} />}
           {activeChild && section === "waktu"      && <ScreenTimeChart childId={activeChild.id} />}
           {activeChild && section === "materi"     && <ParentMaterialList studentId={activeChild.id} />}
           {activeChild && section === "kelas"      && <ClassOverview studentId={activeChild.id} />}
