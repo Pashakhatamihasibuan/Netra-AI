@@ -107,7 +107,7 @@ export default function StudentDashboardPage() {
 
       <ParentPinCard pin={user.parent_pin} />
       <MonitoringPanel />
-      <StudentQuizList />
+      <StudentQuizList onSelect={(quiz) => router.push(`/student/quiz/${quiz.id}`)} />
 
       {/* Materi */}
       <Card>
