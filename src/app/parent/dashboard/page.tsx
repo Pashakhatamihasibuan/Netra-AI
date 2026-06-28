@@ -172,8 +172,8 @@ export default function ParentDashboardPage() {
 
           {activeChild && section === "ringkasan" && (
             <div className="grid sm:grid-cols-2 gap-6">
-              <HealthScoreCard userId={activeChild.id} label={t('dashboard', 'health_latest')} />
-              <BadgeList userId={activeChild.id} />
+              <HealthScoreCard studentId={activeChild.id} />
+              <BadgeList studentId={activeChild.id} />
             </div>
           )}
           {activeChild && section === "monitoring" && <ParentMonitoringView childId={activeChild.id} />}
