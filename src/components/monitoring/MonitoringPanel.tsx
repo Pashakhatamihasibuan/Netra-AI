@@ -9,9 +9,11 @@ interface Props {
   submissionId?: string;
   onWarning?: (active: boolean) => void;
   onComplete?: () => void;
+  /** Mode kecil mengambang di pojok kanan atas (dipakai saat kuis/fullscreen). */
+  compact?: boolean;
 }
 
-export function MonitoringPanel({ materialId, quizMode = false, submissionId, onWarning, onComplete }: Props) {
+export function MonitoringPanel({ materialId, quizMode = false, submissionId, onWarning, onComplete, compact = false }: Props) {
   const { t } = useT();
   const videoRef      = useRef<HTMLVideoElement>(null);
   const canvasRef     = useRef<HTMLCanvasElement>(null);

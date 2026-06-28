@@ -208,19 +208,18 @@ export default function ParentDashboardPage() {
           {activeChild && section === "ringkasan" && (
             <div className="grid sm:grid-cols-2 gap-6">
               <HealthScoreCard
-                userId={activeChild.id}
-                label="Health score terbaru"
+                studentId={activeChild.id}
               />
-              <BadgeList userId={activeChild.id} />
+              <BadgeList studentId={activeChild.id} />
             </div>
           )}
 
           {activeChild && section === "monitoring" && (
-            <ParentMonitoringView childId={activeChild.id} />
+            <ParentMonitoringView studentId={activeChild.id} />
           )}
 
           {activeChild && section === "nilai" && (
-            <ChildQuizResults childId={activeChild.id} />
+            <ChildQuizResults studentId={activeChild.id} />
           )}
           {activeChild && section === "waktu" && (
             <ScreenTimeChart childId={activeChild.id} />
