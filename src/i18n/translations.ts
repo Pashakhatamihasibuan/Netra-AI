@@ -671,6 +671,61 @@ export const translations = {
     modal_per_question: { id: 'Monitoring per soal · {n} soal tercatat', en: 'Per-question monitoring · {n} questions recorded' },
   },
 
+  // ── STUDENT TABLE (teacher dashboard component) ──────────────────────────
+  student_table: {
+    title:         { id: 'Siswa saya',                               en: 'My Students' },
+    loading:       { id: 'Memuat...',                                en: 'Loading...' },
+    empty:         { id: 'Belum ada siswa yang mengerjakan kuis kamu.', en: 'No students have taken your quizzes yet.' },
+    col_name:      { id: 'Nama',                                     en: 'Name' },
+    col_quiz:      { id: 'Nilai kuis terakhir',                      en: 'Latest quiz score' },
+    col_health:    { id: 'Health score',                             en: 'Health score' },
+    default_name:  { id: 'Siswa',                                    en: 'Student' },
+  },
+
+  // ── SCREEN TIME CHART ────────────────────────────────────────────────────
+  screentime_chart: {
+    title:         { id: 'Durasi & health score 14 sesi terakhir',   en: 'Duration & health score — last 14 sessions' },
+    empty:         { id: 'Belum ada riwayat sesi.',                  en: 'No session history yet.' },
+    line_minutes:  { id: 'Menit',                                    en: 'Minutes' },
+    line_health:   { id: 'Health score',                             en: 'Health score' },
+  },
+
+  // ── QUIZ MONITORING DETAIL ───────────────────────────────────────────────
+  quiz_monitor: {
+    back:              { id: '← Kembali',                            en: '← Back' },
+    posture_good:      { id: '✅ Baik',                              en: '✅ Good' },
+    posture_forward:   { id: '⚠️ Condong',                           en: '⚠️ Leaning Forward' },
+    posture_back:      { id: '⚠️ Bersandar',                         en: '⚠️ Leaning Back' },
+    posture_unknown:   { id: '—',                                    en: '—' },
+    lighting_good:     { id: '✅ Baik',                              en: '✅ Good' },
+    lighting_dim:      { id: '⚠️ Gelap',                             en: '⚠️ Dim' },
+    lighting_bright:   { id: '⚠️ Terlalu terang',                   en: '⚠️ Too bright' },
+    lighting_unknown:  { id: '—',                                    en: '—' },
+    reason_posture:    { id: 'Postur buruk',                         en: 'Bad posture' },
+    reason_too_close:  { id: 'Terlalu dekat',                        en: 'Too close' },
+    reason_too_far:    { id: 'Terlalu jauh',                         en: 'Too far' },
+    question:          { id: 'Soal',                                 en: 'Q' },
+    sec_warning:       { id: '{n} detik warning',                    en: '{n} sec warning' },
+    dist_avg_badge:    { id: '{cm} cm rata-rata',                    en: '{cm} cm avg' },
+    dist_none:         { id: 'Jarak: —',                             en: 'Distance: —' },
+    detail_dist_avg:   { id: 'Jarak Rata-rata',                      en: 'Avg Distance' },
+    detail_dist_min:   { id: 'Jarak Min',                            en: 'Min Distance' },
+    detail_dist_max:   { id: 'Jarak Maks',                           en: 'Max Distance' },
+    detail_duration:   { id: 'Durasi Data',                          en: 'Data Duration' },
+    detail_seconds:    { id: '{n} detik',                            en: '{n} sec' },
+    warnings_label:    { id: '⚠️ Jenis peringatan pada soal ini:',   en: '⚠️ Warning types for this question:' },
+    no_warning_msg:    { id: '✅ Siswa duduk dengan postur baik dan jarak layar normal selama mengerjakan soal ini.', en: '✅ Student sat with good posture and normal screen distance while answering this question.' },
+    answered_at:       { id: 'Dijawab: ',                            en: 'Answered: ' },
+    stat_total:        { id: 'Total Soal',                           en: 'Total Questions' },
+    stat_warned:       { id: 'Soal Ada Warning',                     en: 'Questions with Warning' },
+    stat_warn_secs:    { id: 'Detik Warning Total',                  en: 'Total Warning Seconds' },
+    stat_safe:         { id: 'Soal Aman',                            en: 'Safe Questions' },
+    loading:           { id: 'Memuat data per soal…',                en: 'Loading per-question data…' },
+    empty_title:       { id: 'Belum ada data monitoring untuk kuis ini.', en: 'No monitoring data for this quiz yet.' },
+    empty_hint:        { id: 'Data akan muncul setelah siswa mulai mengerjakan.', en: 'Data will appear after students start taking the quiz.' },
+    click_hint:        { id: 'Klik soal untuk melihat detail jarak & postur. Soal dengan latar kuning = ada warning.', en: 'Click a question to see distance & posture details. Yellow background = warning present.' },
+  },
+
   // ── COMMON ──────────────────────────────────────────────────────────────
   common: {
     loading:      { id: 'Memuat...',           en: 'Loading...' },

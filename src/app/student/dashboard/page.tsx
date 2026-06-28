@@ -124,8 +124,8 @@ export default function StudentDashboardPage() {
 
       {/* Health & badges */}
       <div className="grid sm:grid-cols-2 gap-5">
-        <HealthScoreCard userId={user.id} label={t('dashboard', 'health_score_label')} />
-        <BadgeList userId={user.id} />
+        <HealthScoreCard studentId={user.id} />
+        <BadgeList studentId={user.id} />
       </div>
     </div>
   );

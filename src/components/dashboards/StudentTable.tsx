@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRealtimeHealth } from '@/hooks/useRealtimeHealth';
 import { Card, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { useT } from '@/i18n/useT';
 
 interface StudentRow {
   id: string;
@@ -14,8 +15,9 @@ interface StudentRow {
 }
 
 export function StudentTable() {
-  const [rows, setRows]     = useState<StudentRow[]>([]);
+  const [rows, setRows]       = useState<StudentRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useT();
 
   const load = useCallback(async () => {
     const supabase = createClient();
@@ -38,34 +40,34 @@ export function StudentTable() {
         const latestHealth = healthRecords?.find((h) => h.user_id === id);
         return {
           id,
-          name:              latestResult?.display_name ?? 'Siswa',
+          name:              latestResult?.display_name ?? t('student_table', 'default_name'),
           latestQuizScore:   latestResult?.score ?? null,
           latestHealthScore: latestHealth?.health_score ?? null,
         };
       })
     );
     setLoading(false);
-  }, []);
+  }, [t]);
 
   useEffect(() => { load(); }, [load]);
   useRealtimeHealth(load);
 
   return (
     <Card>
-      <CardTitle>Siswa saya</CardTitle>
+      <CardTitle>{t('student_table', 'title')}</CardTitle>
       {loading ? (
-        <p className="text-sm text-ink/50">Memuat...</p>
+        <p className="text-sm text-ink/50">{t('student_table', 'loading')}</p>
       ) : rows.length === 0 ? (
         <p className="text-sm text-ink/50">
-          Belum ada siswa yang mengerjakan kuis kamu.
+          {t('student_table', 'empty')}
         </p>
       ) : (
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-ink/50 border-b border-teal-50">
-              <th className="py-2">Nama</th>
-              <th className="py-2">Nilai kuis terakhir</th>
-              <th className="py-2">Health score</th>
+              <th className="py-2">{t('student_table', 'col_name')}</th>
+              <th className="py-2">{t('student_table', 'col_quiz')}</th>
+              <th className="py-2">{t('student_table', 'col_health')}</th>
             </tr>
           </thead>
           <tbody>
