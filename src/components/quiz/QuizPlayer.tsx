@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardTitle } from '@/components/ui/Card';
 import { MathText } from '@/components/shared/EquationEditor';
 import { useAppStore } from '@/store/useAppStore';
+import { useT } from '@/i18n/useT';
 import type { StudentQuestion } from '@/types';
 
 interface QuizPlayerProps {
@@ -28,6 +29,7 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export function QuizPlayer({ quizId, quizTitle, secondsPerQuestion, randomizeOrder = true }: QuizPlayerProps) {
+  const { t } = useT();
   const [questions, setQuestions] = useState<StudentQuestion[]>([]);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>([]);
@@ -82,7 +84,7 @@ export function QuizPlayer({ quizId, quizTitle, secondsPerQuestion, randomizeOrd
         attemptIdRef.current = startData.attemptId ?? null;
       } catch {
         if (!cancelled) {
-          setBlocked({ reason: 'error', message: 'Gagal memuat kuis. Periksa koneksi internetmu lalu coba lagi.' });
+          setBlocked({ reason: 'error', message: t('quiz', 'player_conn_err') });
           setLoading(false);
         }
         return;
@@ -134,7 +136,7 @@ export function QuizPlayer({ quizId, quizTitle, secondsPerQuestion, randomizeOrd
         flushQuestionMonitoring(index);
         setBlocked({
           reason: 'forfeited',
-          message: 'Kuis dihentikan karena kamu membuka tab atau aplikasi lain. Nilai akhir: 0.',
+          message: t('quiz', 'player_forfeit_tab'),
         });
         fetch('/api/quiz/attempt/forfeit', {
           method: 'POST',
@@ -157,7 +159,7 @@ export function QuizPlayer({ quizId, quizTitle, secondsPerQuestion, randomizeOrd
         flushQuestionMonitoring(index);
         setBlocked({
           reason: 'forfeited',
-          message: 'Kuis dihentikan karena kamu keluar dari mode layar penuh. Nilai akhir: 0.',
+          message: t('quiz', 'player_forfeit_fs'),
         });
         fetch('/api/quiz/attempt/forfeit', {
           method: 'POST',
@@ -205,11 +207,11 @@ export function QuizPlayer({ quizId, quizTitle, secondsPerQuestion, randomizeOrd
 
   let warningMessage = '';
   if (isBadPosture) {
-    warningMessage = 'Posisi duduk tidak benar! Tegakkan punggungmu.';
+    warningMessage = t('monitoring', 'w_posture_quiz');
   } else if (isTooClose) {
-    warningMessage = 'Wajah terlalu dekat dengan layar! Mundur sedikit.';
+    warningMessage = t('monitoring', 'w_too_close_quiz');
   } else if (isTooFar) {
-    warningMessage = 'Wajah terlalu jauh dari layar! Mendekat sedikit.';
+    warningMessage = t('monitoring', 'w_too_far_quiz');
   }
 
   // ── KUMPULKAN SAMPLE CV PER DETIK selama soal aktif ────────────────────
@@ -265,7 +267,7 @@ export function QuizPlayer({ quizId, quizTitle, secondsPerQuestion, randomizeOrd
     const data = await res.json();
     setSubmitting(false);
     if (!res.ok) {
-      setBlocked({ reason: 'forfeited', message: data.error ?? 'Kuis tidak bisa dikumpulkan.', score: data.score ?? 0 });
+      setBlocked({ reason: 'forfeited', message: data.error ?? t('quiz', 'player_cannot_submit'), score: data.score ?? 0 });
       return;
     }
     setResult(data);
@@ -281,20 +283,20 @@ export function QuizPlayer({ quizId, quizTitle, secondsPerQuestion, randomizeOrd
         {blocked.score !== null && blocked.score !== undefined && (
           <p className="text-3xl font-display font-bold text-teal-600 mt-2">{blocked.score}</p>
         )}
-        <p className="text-xs text-ink/40 mt-4">Kuis ini tidak bisa dikerjakan ulang.</p>
+        <p className="text-xs text-ink/40 mt-4">{t('quiz', 'player_no_replay')}</p>
       </Card>
     );
   }
 
-  if (loading) return <Card>Memuat soal...</Card>;
+  if (loading) return <Card>{t('quiz', 'player_loading')}</Card>;
 
   if (result) {
     return (
       <Card>
-        <CardTitle>Hasil: {quizTitle}</CardTitle>
+        <CardTitle>{t('quiz', 'player_result').replace('{title}', quizTitle)}</CardTitle>
         <p className="text-3xl font-display font-bold text-teal-600">{result.score}</p>
         <p className="text-sm text-ink/70">
-          {result.correctCount} dari {result.totalQuestions} jawaban benar.
+          {t('quiz', 'player_correct').replace('{correct}', String(result.correctCount)).replace('{total}', String(result.totalQuestions))}
         </p>
       </Card>
     );
@@ -303,9 +305,9 @@ export function QuizPlayer({ quizId, quizTitle, secondsPerQuestion, randomizeOrd
   if (index >= questions.length) {
     return (
       <Card>
-        <CardTitle>Siap mengumpulkan jawaban?</CardTitle>
-        <p className="text-sm text-ink/70 mb-3">{answers.length} dari {questions.length} soal terjawab.</p>
-        <Button onClick={submitQuiz}>Kumpulkan jawaban</Button>
+        <CardTitle>{t('quiz', 'player_ready')}</CardTitle>
+        <p className="text-sm text-ink/70 mb-3">{t('quiz', 'player_answered').replace('{n}', String(answers.length)).replace('{total}', String(questions.length))}</p>
+        <Button onClick={submitQuiz}>{t('quiz', 'player_submit')}</Button>
       </Card>
     );
   }
@@ -317,15 +319,15 @@ export function QuizPlayer({ quizId, quizTitle, secondsPerQuestion, randomizeOrd
       <Card className="text-center">
         <p className="text-5xl mb-3">🚀</p>
         <CardTitle className="justify-center">{quizTitle}</CardTitle>
-        <p className="text-ink/70 mb-1">{questions.length} soal siap dikerjakan.</p>
+        <p className="text-ink/70 mb-1">{questions.length} {t('quiz', 'player_start_msg')}</p>
         {secondsPerQuestion && (
-          <p className="text-sm text-ink/50 mb-4">Waktu mulai berjalan begitu kamu menekan tombol di bawah.</p>
+          <p className="text-sm text-ink/50 mb-4">{t('quiz', 'player_timed_msg')}</p>
         )}
         <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 inline-block mb-4">
-          Kuis akan otomatis masuk mode layar penuh. Jangan keluar layar penuh atau pindah tab selama mengerjakan.
+          {t('quiz', 'player_warning')}
         </p>
         <div>
-          <Button onClick={handleStartQuiz}>Mulai Kuis</Button>
+          <Button onClick={handleStartQuiz}>{t('quiz', 'player_start')}</Button>
         </div>
       </Card>
     );
@@ -339,14 +341,14 @@ export function QuizPlayer({ quizId, quizTitle, secondsPerQuestion, randomizeOrd
       {isPaused && (
         <div className="absolute inset-0 z-50 bg-alertred-100/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center border-4 border-alertred-500 rounded-xl2">
           <p className="text-6xl mb-4 animate-bounce">⚠️</p>
-          <h2 className="font-display text-2xl font-bold text-alertred-700 mb-2">Kuis Dijeda Otomatis</h2>
+          <h2 className="font-display text-2xl font-bold text-alertred-700 mb-2">{t('quiz', 'player_paused')}</h2>
           <p className="text-alertred-800 font-medium text-lg mb-4">{warningMessage}</p>
-          <p className="text-sm text-alertred-600">Perbaiki posisimu agar kuis bisa dilanjutkan kembali!</p>
+          <p className="text-sm text-alertred-600">{t('quiz', 'player_fix')}</p>
         </div>
       )}
 
       <div className="mb-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 inline-block">
-        ⚠️ Jangan buka tab atau aplikasi lain selama mengerjakan — kuis akan otomatis berhenti dan nilai jadi 0.
+        {t('quiz', 'player_tab_warning')}
       </div>
 
       <div className={`transition-opacity duration-300 ${isPaused ? 'opacity-20 blur-sm pointer-events-none' : 'opacity-100'}`}>
@@ -402,7 +404,7 @@ export function QuizPlayer({ quizId, quizTitle, secondsPerQuestion, randomizeOrd
         </div>
         <div className="flex justify-end mt-6">
           <Button onClick={goNext} disabled={!selected || isPaused}>
-            {index + 1 === questions.length ? 'Selesai' : 'Lanjut'}
+            {index + 1 === questions.length ? t('quiz', 'player_finish') : t('quiz', 'player_next')}
           </Button>
         </div>
       </div>

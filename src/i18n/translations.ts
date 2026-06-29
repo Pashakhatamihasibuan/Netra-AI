@@ -232,8 +232,6 @@ export const translations = {
     col_score:     { id: 'Nilai',              en: 'Score' },
     col_monitoring: { id: 'Monitoring CV',     en: 'CV Monitoring' },
     col_time:      { id: 'Waktu',              en: 'Time' },
-    delete_quiz_err: { id: 'Gagal menghapus kuis: ', en: 'Failed to delete quiz: ' },
-    error_generic: { id: 'Terjadi kesalahan.', en: 'An error occurred.' },
 
     // ── Admin dashboard ────────────────────────────────────────────────────
     admin_title:   { id: 'Kepala Sekolah',    en: 'Principal' },
@@ -304,9 +302,6 @@ export const translations = {
     cancel:       { id: 'Batal',               en: 'Cancel' },
     save:         { id: 'Simpan Kuis',         en: 'Save Quiz' },
     saving:       { id: 'Menyimpan...',        en: 'Saving...' },
-    save_err:     { id: 'Gagal menyimpan.',    en: 'Failed to save.' },
-    img_size_err: { id: 'Ukuran gambar maksimal 2MB.', en: 'Maximum image size is 2MB.' },
-    upload_img_err: { id: 'Gagal mengunggah gambar: ', en: 'Failed to upload image: ' },
     // Quiz player
     player_loading:   { id: 'Memuat soal...',     en: 'Loading questions...' },
     player_result:    { id: 'Hasil: {title}',     en: 'Result: {title}' },
@@ -398,9 +393,6 @@ export const translations = {
     open_access_prompt: { id: 'Durasi akses untuk siswa ini (menit), mis. 120 untuk 2 jam:', en: 'Access duration for this student (minutes), e.g. 120 for 2 hours:' },
     open_access_err:  { id: 'Durasi tidak valid.',         en: 'Invalid duration.' },
     open_access_fail: { id: 'Gagal membuka akses.',        en: 'Failed to open access.' },
-    unsupported_file: { id: '{file}: tipe file tidak didukung. Gunakan gambar, video, PDF, atau PPT/PPTX.', en: '{file}: unsupported file type. Use image, video, PDF, or PPT/PPTX.' },
-    max_size:         { id: '{file}: ukuran maksimal {size}MB.', en: '{file}: maximum size is {size}MB.' },
-    upload_err:       { id: 'Gagal unggah {file}: {err}',  en: 'Failed to upload {file}: {err}' },
 
     // Student access table
     loading_students: { id: 'Memuat status siswa...',      en: 'Loading student status...' },
@@ -676,62 +668,39 @@ export const translations = {
     w_too_close_quiz: { id: 'Wajah terlalu dekat dengan layar! Mundur sedikit.', en: 'Face too close to screen! Move back a little.' },
     w_too_far_quiz:   { id: 'Wajah terlalu jauh dari layar! Mendekat sedikit.', en: 'Face too far from screen! Move a little closer.' },
     // Monitoring detail modal
+    // Badge labels (MonitoringPanel full mode)
+    badge_distance: { id: 'Jarak:',   en: 'Distance:' },
+    badge_posture:  { id: 'Postur:',  en: 'Posture:' },
+    badge_light:    { id: 'Cahaya:',  en: 'Light:' },
+    badge_blink:    { id: 'Kedipan:', en: 'Blink:' },
+    badge_time:     { id: 'Waktu:',   en: 'Time:' },
+    badge_score:    { id: 'Skor:',    en: 'Score:' },
+    // Light status values
+    light_normal:   { id: 'normal',   en: 'normal' },
+    light_dark:     { id: 'gelap',    en: 'dark' },
+    light_bright:   { id: 'silau',    en: 'bright' },
+    // Time units
+    per_min:        { id: 'mnt',      en: 'min' },
+    min_unit:       { id: 'mnt',      en: 'min' },
+    // AI recommendation messages
+    rec_lighting:   { id: 'Ruangan terlalu gelap. Nyalakan lampu tambahan sebelum lanjut belajar.', en: 'Room is too dark. Turn on extra lighting before continuing.' },
+    rec_break:      { id: 'Waktunya istirahat 20 detik — lihat objek sejauh 20 kaki dulu.',         en: 'Time for a 20-second break — look at an object 20 feet away.' },
+    rec_posture:    { id: 'Coba duduk lebih tegak dan luruskan posisi leher.',                       en: 'Try sitting up straighter and align your neck.' },
+    rec_continue:   { id: 'Kondisi belajar baik, lanjutkan!',                                        en: 'Study conditions are good, keep going!' },
+    mascot_safe:        { id: 'Jarak aman, semangat belajar!',      en: 'Safe distance, keep it up!' },
+    mascot_warning:     { id: 'Hmm, agak terlalu dekat nih...',      en: 'Hmm, a bit too close...' },
+    mascot_alert:       { id: 'Yuk mundur sedikit dari layar!',      en: 'Please move back from the screen!' },
+    mascot_warning_far: { id: 'Hmm, agak terlalu jauh nih...',       en: 'Hmm, a bit too far...' },
+    mascot_alert_far:   { id: 'Yuk mendekat sedikit ke layar!',      en: 'Please move a little closer!' },
+    mascot_aria:        { id: 'Maskot dalam status {state}',         en: 'Mascot in {state} status' },
     modal_per_question: { id: 'Monitoring per soal · {n} soal tercatat', en: 'Per-question monitoring · {n} questions recorded' },
-  },
-
-  // ── STUDENT TABLE (teacher dashboard component) ──────────────────────────
-  student_table: {
-    title:         { id: 'Siswa saya',                               en: 'My Students' },
-    loading:       { id: 'Memuat...',                                en: 'Loading...' },
-    empty:         { id: 'Belum ada siswa yang mengerjakan kuis kamu.', en: 'No students have taken your quizzes yet.' },
-    col_name:      { id: 'Nama',                                     en: 'Name' },
-    col_quiz:      { id: 'Nilai kuis terakhir',                      en: 'Latest quiz score' },
-    col_health:    { id: 'Health score',                             en: 'Health score' },
-    default_name:  { id: 'Siswa',                                    en: 'Student' },
-  },
-
-  // ── SCREEN TIME CHART ────────────────────────────────────────────────────
-  screentime_chart: {
-    title:         { id: 'Durasi & health score 14 sesi terakhir',   en: 'Duration & health score — last 14 sessions' },
-    empty:         { id: 'Belum ada riwayat sesi.',                  en: 'No session history yet.' },
-    line_minutes:  { id: 'Menit',                                    en: 'Minutes' },
-    line_health:   { id: 'Health score',                             en: 'Health score' },
-  },
-
-  // ── QUIZ MONITORING DETAIL ───────────────────────────────────────────────
-  quiz_monitor: {
-    back:              { id: '← Kembali',                            en: '← Back' },
-    posture_good:      { id: '✅ Baik',                              en: '✅ Good' },
-    posture_forward:   { id: '⚠️ Condong',                           en: '⚠️ Leaning Forward' },
-    posture_back:      { id: '⚠️ Bersandar',                         en: '⚠️ Leaning Back' },
-    posture_unknown:   { id: '—',                                    en: '—' },
-    lighting_good:     { id: '✅ Baik',                              en: '✅ Good' },
-    lighting_dim:      { id: '⚠️ Gelap',                             en: '⚠️ Dim' },
-    lighting_bright:   { id: '⚠️ Terlalu terang',                   en: '⚠️ Too bright' },
-    lighting_unknown:  { id: '—',                                    en: '—' },
-    reason_posture:    { id: 'Postur buruk',                         en: 'Bad posture' },
-    reason_too_close:  { id: 'Terlalu dekat',                        en: 'Too close' },
-    reason_too_far:    { id: 'Terlalu jauh',                         en: 'Too far' },
-    question:          { id: 'Soal',                                 en: 'Q' },
-    sec_warning:       { id: '{n} detik warning',                    en: '{n} sec warning' },
-    dist_avg_badge:    { id: '{cm} cm rata-rata',                    en: '{cm} cm avg' },
-    dist_none:         { id: 'Jarak: —',                             en: 'Distance: —' },
-    detail_dist_avg:   { id: 'Jarak Rata-rata',                      en: 'Avg Distance' },
-    detail_dist_min:   { id: 'Jarak Min',                            en: 'Min Distance' },
-    detail_dist_max:   { id: 'Jarak Maks',                           en: 'Max Distance' },
-    detail_duration:   { id: 'Durasi Data',                          en: 'Data Duration' },
-    detail_seconds:    { id: '{n} detik',                            en: '{n} sec' },
-    warnings_label:    { id: '⚠️ Jenis peringatan pada soal ini:',   en: '⚠️ Warning types for this question:' },
-    no_warning_msg:    { id: '✅ Siswa duduk dengan postur baik dan jarak layar normal selama mengerjakan soal ini.', en: '✅ Student sat with good posture and normal screen distance while answering this question.' },
-    answered_at:       { id: 'Dijawab: ',                            en: 'Answered: ' },
-    stat_total:        { id: 'Total Soal',                           en: 'Total Questions' },
-    stat_warned:       { id: 'Soal Ada Warning',                     en: 'Questions with Warning' },
-    stat_warn_secs:    { id: 'Detik Warning Total',                  en: 'Total Warning Seconds' },
-    stat_safe:         { id: 'Soal Aman',                            en: 'Safe Questions' },
-    loading:           { id: 'Memuat data per soal…',                en: 'Loading per-question data…' },
-    empty_title:       { id: 'Belum ada data monitoring untuk kuis ini.', en: 'No monitoring data for this quiz yet.' },
-    empty_hint:        { id: 'Data akan muncul setelah siswa mulai mengerjakan.', en: 'Data will appear after students start taking the quiz.' },
-    click_hint:        { id: 'Klik soal untuk melihat detail jarak & postur. Soal dengan latar kuning = ada warning.', en: 'Click a question to see distance & posture details. Yellow background = warning present.' },
+    stat_total_q:    { id: 'Total Soal',          en: 'Total Questions' },
+    stat_warned_q:   { id: 'Soal Ada Warning',    en: 'Questions with Warning' },
+    stat_total_warn: { id: 'Detik Warning Total', en: 'Total Warning Seconds' },
+    stat_safe_q:     { id: 'Soal Aman',           en: 'Safe Questions' },
+    loading_detail:  { id: 'Memuat data per soal…', en: 'Loading per-question data…' },
+    no_detail:       { id: 'Belum ada data monitoring untuk kuis ini.', en: 'No monitoring data for this quiz yet.' },
+    detail_hint:     { id: 'Klik soal untuk melihat detail jarak & postur. Soal dengan latar kuning = ada warning.', en: 'Click a question to see distance & posture details. Yellow background = has warning.' },
   },
 
   // ── COMMON ──────────────────────────────────────────────────────────────
@@ -745,6 +714,7 @@ export const translations = {
     search:       { id: 'Cari...',            en: 'Search...' },
     no_data:      { id: 'Tidak ada data.',    en: 'No data.' },
     error:        { id: 'Terjadi kesalahan.', en: 'An error occurred.' },
+    back:         { id: '← Kembali',        en: '← Back' },
     copyright:    { id: 'Platform Kesehatan Digital Sekolah Indonesia', en: 'Digital Health Platform for Indonesian Schools' },
     download_csv: { id: 'Download CSV',       en: 'Download CSV' },
     refresh:      { id: '↻',                  en: '↻' },

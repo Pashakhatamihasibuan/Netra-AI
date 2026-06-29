@@ -458,37 +458,37 @@ export function MonitoringPanel({ compact = false }: MonitoringPanelProps) {
             state={monster.state} 
             message={
               monster.state !== 'safe' && monster.distanceCm !== null && monster.distanceCm > 70 
-                ? (monster.state === 'warning' ? 'Hmm, agak terlalu jauh nih...' : 'Yuk mendekat sedikit ke layar!') 
+                ? (monster.state === 'warning' ? t('monitoring', 'mascot_warning_far') : t('monitoring', 'mascot_alert_far')) 
                 : undefined
             } 
           />
 
           <div className="flex flex-wrap gap-2">
             <Badge tone={monster.state === 'safe' ? 'safe' : monster.state === 'warning' ? 'warning' : 'alert'}>
-              Jarak: {monster.distanceCm != null ? `${monster.distanceCm} cm` : '—'}
+              {t('monitoring', 'badge_distance')} {monster.distanceCm != null ? `${monster.distanceCm} cm` : '—'}
             </Badge>
 
             {/* Postur badge — sekarang akurat dari FaceLandmarker seperti main.py */}
             <Badge tone={postureTone}>
-              Postur: {faceMesh.posture === 'good' ? t('monitoring', 'posture_good') : faceMesh.posture === 'warning' ? t('monitoring', 'posture_warn') : t('monitoring', 'posture_poor')}
+              {t('monitoring', 'badge_posture')} {faceMesh.posture === 'good' ? t('monitoring', 'posture_good') : faceMesh.posture === 'warning' ? t('monitoring', 'posture_warn') : t('monitoring', 'posture_poor')}
             </Badge>
 
             <Badge tone={lighting.lighting === 'normal' ? 'safe' : 'warning'}>
-              Cahaya: {lighting.lighting}
+              {t('monitoring', 'badge_light')} {lighting.lighting === 'normal' ? t('monitoring', 'light_normal') : lighting.lighting === 'dark' ? t('monitoring', 'light_dark') : t('monitoring', 'light_bright')}
             </Badge>
             <Badge tone={
               faceMesh.blinkRatePerMinute === 0 ? 'neutral'
               : faceMesh.blinkRatePerMinute < 8 ? 'alert'
               : 'safe'
             }>
-              Kedipan: {faceMesh.blinkRatePerMinute > 0 ? `${faceMesh.blinkRatePerMinute}/mnt` : '—'}
+              {t('monitoring', 'badge_blink')} {faceMesh.blinkRatePerMinute > 0 ? `${faceMesh.blinkRatePerMinute}/${t('monitoring', 'per_min')}` : '—'}
             </Badge>
             <Badge tone="neutral">
-              Waktu: {Math.round(screenTime.totalMinutes)} mnt
+              {t('monitoring', 'badge_time')} {Math.round(screenTime.totalMinutes)} {t('monitoring', 'min_unit')}
             </Badge>
             {liveScore !== null && (
               <Badge tone={scoreTone}>
-                Skor: {Math.round(liveScore)}
+                {t('monitoring', 'badge_score')} {Math.round(liveScore)}
               </Badge>
             )}
           </div>
@@ -509,7 +509,10 @@ export function MonitoringPanel({ compact = false }: MonitoringPanelProps) {
 
           <div className="rounded-xl2 bg-cream px-4 py-3 text-sm">
             <strong className="font-display">Rekomendasi AI:</strong>{' '}
-            {decision.message}
+            {decision.recommendation === 'increase_lighting' ? t('monitoring', 'rec_lighting')
+              : decision.recommendation === 'take_a_break' ? t('monitoring', 'rec_break')
+              : decision.recommendation === 'improve_posture' ? t('monitoring', 'rec_posture')
+              : t('monitoring', 'rec_continue')}
           </div>
 
           {screenTime.isBreakDue && !screenTime.isBreakActive && (

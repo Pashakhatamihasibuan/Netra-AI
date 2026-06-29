@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import type { MonsterState } from '@/types';
+import { useT } from '@/i18n/useT';
 
 interface MascotProps {
   state: MonsterState;
@@ -12,26 +13,15 @@ interface MascotProps {
 // from. A worried, blinking creature that visibly relaxes once distance is
 // corrected reinforces the habit better than a threatening one does, and
 // won't spook a child mid-quiz.
-const STATE_COPY: Record<MonsterState, { default: string; bodyClass: string; cheekClass: string }> = {
-  safe: {
-    default: 'Jarak aman, semangat belajar!',
-    bodyClass: 'fill-teal-200',
-    cheekClass: 'fill-teal-600',
-  },
-  warning: {
-    default: 'Hmm, agak terlalu dekat nih...',
-    bodyClass: 'fill-amber-200',
-    cheekClass: 'fill-amber-600',
-  },
-  alert: {
-    default: 'Yuk mundur sedikit dari layar!',
-    bodyClass: 'fill-alertred-200',
-    cheekClass: 'fill-alertred-600',
-  },
+const STATE_CLASSES: Record<MonsterState, { bodyClass: string; cheekClass: string }> = {
+  safe:    { bodyClass: 'fill-teal-200',     cheekClass: 'fill-teal-600' },
+  warning: { bodyClass: 'fill-amber-200',    cheekClass: 'fill-amber-600' },
+  alert:   { bodyClass: 'fill-alertred-200', cheekClass: 'fill-alertred-600' },
 };
 
 export function Mascot({ state, message }: MascotProps) {
-  const copy = STATE_COPY[state];
+  const { t } = useT();
+  const copy = STATE_CLASSES[state];
   const isAlert = state === 'alert';
   const isWarning = state === 'warning';
 
@@ -46,7 +36,7 @@ export function Mascot({ state, message }: MascotProps) {
         width="84"
         height="84"
         role="img"
-        aria-label={`Maskot dalam status ${state}`}
+        aria-label={`${t('monitoring', 'mascot_aria').replace('{state}', state)}`}
         className={cn('mascot-transition', isAlert && 'mascot-bounce')}
       >
         <circle cx="60" cy="64" r="44" className={copy.bodyClass} />
@@ -84,7 +74,7 @@ export function Mascot({ state, message }: MascotProps) {
       </svg>
 
       <div className="rounded-xl2 bg-white border border-teal-50 px-4 py-2 text-sm text-ink shadow-sm">
-        {message ?? copy.default}
+        {message ?? (state === 'safe' ? t('monitoring', 'mascot_safe') : state === 'warning' ? t('monitoring', 'mascot_warning') : t('monitoring', 'mascot_alert'))}
       </div>
     </div>
   );
