@@ -176,7 +176,7 @@ function MaterialCard({ m, openId, setOpenId, requesting, handleRequest, t }: {
 
       {isOpen && !isLocked && (
         <div className="mt-4 border-t border-teal-50 pt-4 space-y-4">
-          <MonitoringPanel materialId={m.id} quizMode={false} />
+          <MonitoringPanel />
           {m.media && m.media.length > 0 && (
             <div className="space-y-3">
               {m.media.map((media, i) => (

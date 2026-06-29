@@ -12,9 +12,6 @@ import { StudentQuizList } from '@/components/student/StudentQuizList';
 import { useAppStore } from '@/store/useAppStore';
 import { useT } from '@/i18n/useT';
 
-// Grade labels are looked up via t() using keys grade_3 … grade_6
-// defined in translations.dashboard to keep all strings centralised.
-
 export default function StudentDashboardPage() {
   const user   = useAppStore((s) => s.user);
   const router = useRouter();
@@ -28,15 +25,11 @@ export default function StudentDashboardPage() {
   useEffect(() => {
     if (!user) return;
     fetch('/api/student/homeroom').then(r => r.json()).then(d => {
-      if (d.section) {
-        const wali = t('dashboard', 'homeroom_label');
-        const unassigned = t('dashboard', 'homeroom_unassigned');
-        setHomeroom(`${d.section.class_level} SD ${d.section.section} · ${wali}: ${d.section.homeroom_teacher_name ?? unassigned}`);
-      }
+      if (d.section) setHomeroom(`${d.section.class_level} SD ${d.section.section} · ${t('dashboard', 'homeroom_label')}: ${d.section.homeroom_teacher_name ?? t('dashboard', 'homeroom_unassigned')}`);
     }).catch(() => {});
   }, [user, lang]);
 
-  useEffect(() => { const timer = setTimeout(() => setReady(true), 500); return () => clearTimeout(timer); }, []);
+  useEffect(() => { const t = setTimeout(() => setReady(true), 3000); return () => clearTimeout(t); }, []);
   useEffect(() => { if (user) setReady(true); }, [user]);
 
   async function handleJoinQuiz(e: React.FormEvent) {
@@ -68,8 +61,6 @@ export default function StudentDashboardPage() {
     </div>
   );
 
-  const gradeLabel = user.grade_level ? t('dashboard', `grade_${user.grade_level}`) : '';
-
   return (
     <div className="animate-fade-up space-y-5">
       {/* Greeting */}
@@ -78,7 +69,7 @@ export default function StudentDashboardPage() {
           <div>
             <p className="text-white/60 text-xs font-medium mb-1">{t('dashboard', 'hello')}</p>
             <h1 className="font-display font-bold text-xl">{user.name}</h1>
-            <p className="text-white/70 text-sm mt-1">{gradeLabel} · {t('dashboard', 'ready_today')}</p>
+            <p className="text-white/70 text-sm mt-1">{user.grade_level ? t('dashboard', `grade_${user.grade_level}`) : ''} · {t('dashboard', 'ready_today')}</p>
             {homeroomLabel && <p className="text-white/40 text-xs mt-0.5">{homeroomLabel}</p>}
           </div>
           <div className="text-4xl shrink-0">🎒</div>
@@ -92,7 +83,7 @@ export default function StudentDashboardPage() {
         <form onSubmit={handleJoinQuiz} className="flex gap-2">
           <input
             className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-center tracking-widest uppercase font-mono text-base focus:outline-none focus:ring-2 focus:ring-[#1B8A5A]/50 focus:border-[#1B8A5A] bg-white"
-            placeholder={t('dashboard', 'join_placeholder')}
+            placeholder={t("dashboard", "join_placeholder")}
             value={quizCode}
             onChange={(e) => setQuizCode(e.target.value.toUpperCase())}
             maxLength={6}
