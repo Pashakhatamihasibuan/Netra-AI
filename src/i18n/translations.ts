@@ -703,6 +703,25 @@ export const translations = {
     detail_hint:     { id: 'Klik soal untuk melihat detail jarak & postur. Soal dengan latar kuning = ada warning.', en: 'Click a question to see distance & posture details. Yellow background = has warning.' },
   },
 
+  // ── STUDENT TABLE ────────────────────────────────────────────────────────
+  student_table: {
+    title:        { id: 'Daftar Siswa',                en: 'Student List' },
+    loading:      { id: 'Memuat data siswa…',           en: 'Loading student data…' },
+    empty:        { id: 'Belum ada data siswa.',        en: 'No student data yet.' },
+    default_name: { id: 'Siswa',                       en: 'Student' },
+    col_name:     { id: 'Nama Siswa',                  en: 'Student Name' },
+    col_quiz:     { id: 'Nilai Kuis Terakhir',         en: 'Latest Quiz Score' },
+    col_health:   { id: 'Health Score Terakhir',       en: 'Latest Health Score' },
+  },
+
+  // ── SCREENTIME CHART ────────────────────────────────────────────────────
+  screentime_chart: {
+    title:        { id: 'Grafik Waktu Layar & Kesehatan', en: 'Screen Time & Health Chart' },
+    empty:        { id: 'Belum ada data sesi belajar.',   en: 'No study session data yet.' },
+    line_minutes: { id: 'Menit layar',                    en: 'Screen minutes' },
+    line_health:  { id: 'Health score',                   en: 'Health score' },
+  },
+
   // ── COMMON ──────────────────────────────────────────────────────────────
   common: {
     loading:      { id: 'Memuat...',           en: 'Loading...' },
